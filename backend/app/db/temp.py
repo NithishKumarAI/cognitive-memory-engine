@@ -1,3 +1,14 @@
-from app.models.study_log import StudyLog
+from app.core.auth import (
+    create_access_token,
+    verify_access_token
+)
 
-print(StudyLog.__tablename__)
+token = create_access_token(
+    {
+        "sub": "nithish@example.com"
+    }
+)
+
+email = verify_access_token(token)
+
+print(email)
