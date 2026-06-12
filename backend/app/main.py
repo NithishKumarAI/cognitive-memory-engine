@@ -4,6 +4,9 @@ from app.db.database import test_connection
 
 from app.routes.user import router as user_router
 from app.routes.study_logs import router as study_log_router
+from app.routes.memory import router as memory_router
+
+
 app = FastAPI(
     title="Cognitive Memory Engine",
     version="1.0.0"
@@ -11,6 +14,7 @@ app = FastAPI(
 
 app.include_router(user_router)
 app.include_router(study_log_router)
+app.include_router(memory_router)
 
 def root():
     return {

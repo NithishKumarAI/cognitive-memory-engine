@@ -1,0 +1,79 @@
+from sqlalchemy.orm import Session
+
+from app.models.memory import Memory
+from app.schemas.memory import (
+    MemoryCreate,
+    MemoryUpdate
+)
+
+
+def create_memory(
+    db: Session,
+    memory: MemoryCreate,
+    user_id: int
+):
+    db_memory = Memory(
+        title=memory.title,
+        content=memory.content,
+        category=memory.category,
+        study_log_id=memory.study_log_id,
+        user_id=user_id
+    )
+
+    db.add(db_memory)
+    db.commit()
+    db.refresh(db_memory)
+
+    return db_memory
+
+
+def get_memory_by_id(
+    db: Session,
+    memory_id: int
+):
+    return (
+        db.query(Memory)
+        .filter(Memory.id == memory_id)
+        .first()
+    )
+
+
+def get_user_memories(
+    db: Session,
+    user_id: int
+):
+    return (
+        db.query(Memory)
+        .filter(Memory.user_id == user_id)
+        .all()
+    )
+
+
+def update_memory(
+    db: Session,
+    db_memory: Memory,
+    memory_update: MemoryUpdate
+):
+    update_data = memory_update.model_dump(
+        exclude_unset=True
+    )
+
+    for field, value in update_data.items():
+        setattr(
+            db_memory,
+            field,
+            value
+        )
+
+    db.commit()
+    db.refresh(db_memory)
+
+    return db_memory
+
+
+def delete_memory(
+    db: Session,
+    db_memory: Memory
+):
+    db.delete(db_memory)
+    db.commit()

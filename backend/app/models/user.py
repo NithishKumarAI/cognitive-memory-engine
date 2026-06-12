@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.sql import func
-
+from sqlalchemy.orm import relationship
 from app.db.database import Base
 
 
@@ -29,4 +29,15 @@ class User(Base):
     created_at = Column(
         DateTime(timezone=True),
         server_default=func.now()
+    )
+    study_logs = relationship(
+        "StudyLog",
+        back_populates="owner",
+        cascade="all, delete-orphan"
+    )
+
+    memories = relationship(
+        "Memory",
+        back_populates="owner",
+        cascade="all, delete-orphan"
     )
