@@ -1089,3 +1089,362 @@ Planned topics:
 ### Goal
 
 Transform raw Study Logs into structured memories that can later be used by retrieval, semantic search, and RAG systems.
+
+# Phase 5 — Memory Layer Foundation
+
+## Status
+
+✅ Completed
+
+## Objectives
+
+* [x] Create Memory model
+* [x] Create Memory schemas
+* [x] Create Memory CRUD layer
+* [x] Create Memory API routes
+* [x] Create Memory ↔ User relationship
+* [x] Create Memory ↔ StudyLog relationship
+* [x] Implement Memory ownership enforcement
+* [x] Implement authenticated Memory creation
+* [x] Implement authenticated Memory retrieval
+* [x] Implement authenticated Memory update
+* [x] Implement authenticated Memory deletion
+* [x] Implement Memory categorization
+* [x] Validate StudyLog ownership before Memory linking
+* [x] Generate and apply Alembic migration
+* [x] Verify PostgreSQL persistence
+* [x] Verify end-to-end API functionality
+
+---
+
+## What Was Built
+
+### Memory Data Model
+
+Created:
+
+```text
+app/models/memory.py
+```
+
+Implemented Memory entity containing:
+
+```text
+id
+user_id
+study_log_id
+title
+content
+category
+```
+
+Each Memory represents a structured knowledge unit that can later be embedded, retrieved, ranked, and used in RAG pipelines.
+
+---
+
+### Memory Relationships
+
+Implemented:
+
+```text
+User
+   ↓
+Memories
+
+StudyLog
+   ↓
+Memories
+```
+
+Added SQLAlchemy relationships between:
+
+* User ↔ Memory
+* StudyLog ↔ Memory
+
+This establishes the ownership and knowledge hierarchy required for future retrieval systems.
+
+---
+
+### Database Migration
+
+Generated Alembic migration:
+
+```text
+add_memories_table
+```
+
+Successfully applied migration to PostgreSQL.
+
+Verified creation of:
+
+```text
+memories
+```
+
+table.
+
+---
+
+### Memory Schemas
+
+Created:
+
+```text
+app/schemas/memory.py
+```
+
+Implemented:
+
+* MemoryCreate
+* MemoryUpdate
+* MemoryResponse
+
+Schemas provide:
+
+* Request validation
+* Response serialization
+* API contract enforcement
+
+---
+
+### Memory CRUD Layer
+
+Created:
+
+```text
+app/crud/memory.py
+```
+
+Implemented:
+
+* create_memory()
+* get_memory_by_id()
+* get_user_memories()
+* update_memory()
+* delete_memory()
+
+Database operations are now separated from route logic following FastAPI best practices.
+
+---
+
+### Memory API Routes
+
+Created:
+
+```text
+app/routes/memory.py
+```
+
+Implemented endpoints:
+
+```http
+POST   /memories
+GET    /memories
+GET    /memories/{memory_id}
+PUT    /memories/{memory_id}
+DELETE /memories/{memory_id}
+```
+
+All endpoints were successfully tested.
+
+---
+
+### Authentication Integration
+
+Integrated Memory APIs with:
+
+```python
+get_current_user()
+```
+
+using the JWT authentication system built in Phase 3.
+
+All Memory operations now require authentication.
+
+Ownership is automatically assigned using:
+
+```python
+current_user.id
+```
+
+Users cannot manually choose ownership.
+
+---
+
+### Memory Ownership Enforcement
+
+Implemented authorization checks for:
+
+* Retrieve Memory
+* Update Memory
+* Delete Memory
+
+Users can only access Memories that belong to them.
+
+Unauthorized access attempts return appropriate HTTP errors.
+
+---
+
+### StudyLog Ownership Validation
+
+Implemented validation before Memory creation.
+
+When a Memory references:
+
+```text
+study_log_id
+```
+
+the system verifies that the referenced StudyLog belongs to the authenticated user.
+
+This prevents:
+
+```text
+User A Memory
+        ↓
+linked to
+        ↓
+User B Study Log
+```
+
+and preserves ownership integrity across the system.
+
+---
+
+### PostgreSQL Persistence Verification
+
+Successfully verified:
+
+* Memory creation
+* Memory retrieval
+* Memory updates
+* Memory deletion
+* Memory ↔ StudyLog linking
+
+All operations persist correctly in PostgreSQL.
+
+---
+
+### Authentication Architecture Review
+
+During Phase 5, the authentication system was reviewed.
+
+The project continues using:
+
+```python
+OAuth2PasswordBearer
+```
+
+and JWT authentication.
+
+Reason:
+
+* Required for user ownership enforcement
+* Required for Memory isolation
+* Required for future embeddings and retrieval systems
+* Required for RAG personalization
+* Required for analytics and recommendation features
+
+A Swagger OAuth login-flow usability issue was identified.
+
+This issue affects only developer experience inside Swagger UI and does not affect:
+
+* Security
+* Authentication
+* Authorization
+* Ownership validation
+* JWT token handling
+
+For testing, Postman was used successfully.
+
+Future improvement:
+
+```text
+Swagger OAuth2 login flow refinement
+```
+
+without changing the underlying authentication architecture.
+
+---
+
+## End-to-End Verification
+
+Successfully tested:
+
+```http
+POST   /memories
+GET    /memories
+GET    /memories/{memory_id}
+PUT    /memories/{memory_id}
+DELETE /memories/{memory_id}
+```
+
+Verified:
+
+* JWT authentication
+* Ownership enforcement
+* StudyLog ownership validation
+* PostgreSQL persistence
+* API correctness
+
+---
+
+## Current Architecture
+
+```text
+Client
+   ↓
+JWT Authentication
+   ↓
+Memory Routes
+   ↓
+Ownership Validation
+   ↓
+CRUD Layer
+   ↓
+SQLAlchemy ORM
+   ↓
+PostgreSQL
+```
+
+---
+
+## Outcome
+
+The system now supports structured, user-owned Memories.
+
+Memories are:
+
+* Authenticated
+* Authorized
+* Persisted
+* Categorized
+* Linked to Study Logs
+
+The Memory Layer is now ready for:
+
+* Embeddings
+* pgvector integration
+* Semantic search
+* Retrieval
+* RAG systems
+* Recommendation systems
+
+---
+
+# Next Phase
+
+## Phase 6 — Embedding & Vector Foundation
+
+Planned topics:
+
+* pgvector installation
+* Vector database integration
+* Embedding generation
+* Memory embeddings
+* Semantic similarity search
+* Retrieval layer
+* RAG-ready memory retrieval
+
+```
+```
