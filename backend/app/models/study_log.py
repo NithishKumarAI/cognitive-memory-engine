@@ -29,3 +29,8 @@ class StudyLog(Base):
         DateTime(timezone=True),
         server_default=func.now()
     )
+
+    notes = Column(
+        String,
+        nullable=False
+    )

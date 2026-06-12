@@ -480,3 +480,612 @@ Planned topics:
 * Learning insights
 * Recommendations
 * Memory ranking
+# Phase 3 — User Security Layer
+
+## Status
+
+✅ Completed
+
+## Objectives
+
+* [x] Install passlib and python-jose
+* [x] Configure bcrypt password hashing
+* [x] Create password verification service
+* [x] Create UserResponse schema
+* [x] Create UserLogin schema
+* [x] Create Token schema
+* [x] Implement secure user creation
+* [x] Prevent duplicate email registration
+* [x] Prevent duplicate username registration
+* [x] Create registration endpoint
+* [x] Create login endpoint
+* [x] Generate JWT access tokens
+* [x] Validate JWT access tokens
+* [x] Configure OAuth2 bearer authentication
+* [x] Create get_current_user dependency
+* [x] Protect API routes
+* [x] Create GET /me endpoint
+* [x] Hide password fields from API responses
+
+---
+
+## What Was Built
+
+### Password Security
+
+Created:
+
+```text
+app/core/security.py
+```
+
+Implemented:
+
+* hash_password()
+* verify_password()
+
+Passwords are now stored as bcrypt hashes.
+
+Verified that plain text passwords are never persisted to PostgreSQL.
+
+---
+
+### JWT Authentication System
+
+Created:
+
+```text
+app/core/auth.py
+```
+
+Implemented:
+
+* create_access_token()
+* verify_access_token()
+* oauth2_scheme
+* get_current_user()
+
+JWT tokens now contain:
+
+```json
+{
+  "sub": "user@example.com",
+  "exp": "<expiration>"
+}
+```
+
+---
+
+### User Authentication Schemas
+
+Updated:
+
+```text
+app/schemas/user.py
+```
+
+Created:
+
+* UserCreate
+* UserResponse
+* UserLogin
+* Token
+
+Response schemas prevent sensitive fields from leaking through APIs.
+
+---
+
+### Registration Flow
+
+Implemented:
+
+```http
+POST /register
+```
+
+Features:
+
+* Email validation
+* Duplicate email protection
+* Duplicate username protection
+* Password hashing before database storage
+
+---
+
+### Login Flow
+
+Implemented:
+
+```http
+POST /login
+```
+
+Features:
+
+* User lookup by email
+* Password verification
+* JWT generation
+* Bearer token response
+
+Response:
+
+```json
+{
+  "access_token": "<jwt>",
+  "token_type": "bearer"
+}
+```
+
+---
+
+### Protected Routes
+
+Implemented:
+
+```http
+GET /me
+GET /users
+GET /users/{user_id}
+```
+
+Protected using:
+
+```python
+current_user = Depends(get_current_user)
+```
+
+Unauthorized users receive:
+
+```json
+{
+  "detail": "Not authenticated"
+}
+```
+
+---
+
+### Current User System
+
+Implemented:
+
+```python
+get_current_user()
+```
+
+Flow:
+
+```text
+Bearer Token
+      ↓
+JWT Validation
+      ↓
+Email Extraction
+      ↓
+Database Lookup
+      ↓
+User Object
+```
+
+This foundation will be reused across all future memory, conversation, document, and RAG endpoints.
+
+---
+
+## Key Concepts Learned
+
+### Authentication
+
+* Password hashing
+* Password verification
+* User registration
+* User login
+
+### JWT
+
+* Token generation
+* Token validation
+* Claims
+* Expiration handling
+
+### FastAPI Security
+
+* OAuth2PasswordBearer
+* Dependency-based authentication
+* Protected routes
+* Current user dependencies
+
+### API Security
+
+* Response models
+* Hiding sensitive fields
+* HTTP exception handling
+* Authorization checks
+
+---
+
+## Current Architecture
+
+```text
+Client
+   ↓
+JWT Token
+   ↓
+FastAPI Routes
+   ↓
+get_current_user()
+   ↓
+CRUD Layer
+   ↓
+SQLAlchemy ORM
+   ↓
+PostgreSQL
+```
+
+---
+
+# Next Phase
+
+## Phase 4 — User-Owned Study Log System
+
+Planned topics:
+
+* Authenticated study log creation
+* User-to-study-log relationships
+* Ownership enforcement
+* Study log CRUD
+* Study history retrieval
+* Learning activity tracking
+
+### Goal
+
+Every study log should automatically belong to:
+
+```python
+current_user.id
+```
+
+using the authentication layer built in Phase 3.
+
+# Phase 4 — User-Owned Study Log System
+
+## Status
+
+✅ Completed
+
+## Objectives
+
+* [x] Create StudyLog schemas
+* [x] Create StudyLog CRUD layer
+* [x] Create authenticated study log creation
+* [x] Link study logs to users
+* [x] Implement ownership enforcement
+* [x] Create GET study logs endpoint
+* [x] Create GET single study log endpoint
+* [x] Create UPDATE study log endpoint
+* [x] Create DELETE study log endpoint
+* [x] Restrict users to their own study logs
+* [x] Verify PostgreSQL persistence
+* [x] Create study history retrieval APIs
+
+---
+
+## What Was Built
+
+### StudyLog Schema Layer
+
+Created:
+
+```text
+app/schemas/study_logs.py
+```
+
+Implemented:
+
+* StudyLogCreate
+* StudyLogUpdate
+* StudyLogResponse
+
+These schemas now provide request validation and response serialization for all Study Log APIs.
+
+---
+
+### StudyLog Model Enhancement
+
+Updated:
+
+```text
+app/models/study_log.py
+```
+
+Added:
+
+```python
+notes
+```
+
+field to support richer study session information.
+
+Study logs now contain:
+
+```text
+id
+user_id
+topic
+duration_minutes
+notes
+created_at
+```
+
+This structure provides meaningful textual content for future AI memory and retrieval systems.
+
+---
+
+### Database Migration
+
+Created Alembic migration:
+
+```text
+add_notes_to_study_logs
+```
+
+Successfully migrated PostgreSQL schema.
+
+Verified that:
+
+```text
+study_logs
+```
+
+contains:
+
+```text
+id
+user_id
+topic
+duration_minutes
+notes
+created_at
+```
+
+---
+
+### StudyLog CRUD Layer
+
+Created:
+
+```text
+app/crud/study_logs.py
+```
+
+Implemented:
+
+* create_study_log()
+* get_user_study_logs()
+* get_study_log()
+* update_study_log()
+* delete_study_log()
+
+The CRUD layer centralizes all Study Log database operations and separates business logic from API routes.
+
+---
+
+### StudyLog API Routes
+
+Created:
+
+```text
+app/routes/study_logs.py
+```
+
+Implemented endpoints:
+
+```http
+POST   /study-logs/
+GET    /study-logs/
+GET    /study-logs/{study_log_id}
+PUT    /study-logs/{study_log_id}
+DELETE /study-logs/{study_log_id}
+```
+
+All endpoints were verified through Postman.
+
+---
+
+### Authenticated Study Log Creation
+
+Integrated:
+
+```python
+get_current_user()
+```
+
+with Study Log creation.
+
+Study logs are now automatically assigned to:
+
+```python
+current_user.id
+```
+
+Users cannot manually choose ownership.
+
+Example flow:
+
+```text
+JWT Token
+      ↓
+Current User
+      ↓
+Study Log Creation
+      ↓
+user_id assigned automatically
+```
+
+---
+
+### Ownership Enforcement
+
+Implemented ownership validation on all protected Study Log operations.
+
+Every Study Log query now includes:
+
+```python
+StudyLog.user_id == current_user.id
+```
+
+This prevents users from:
+
+* Viewing another user's study logs
+* Updating another user's study logs
+* Deleting another user's study logs
+
+Unauthorized access attempts return:
+
+```json
+{
+  "detail": "Study log not found"
+}
+```
+
+---
+
+### Study History Retrieval
+
+Implemented:
+
+```http
+GET /study-logs/
+```
+
+Returns only Study Logs owned by the authenticated user.
+
+Example:
+
+```text
+User A
+   ↓
+Only User A Study Logs
+
+User B
+   ↓
+Only User B Study Logs
+```
+
+This endpoint forms the foundation for future learning analytics and progress tracking features.
+
+---
+
+### End-to-End Verification
+
+Successfully verified:
+
+* Study Log creation
+* Study Log retrieval
+* Single Study Log retrieval
+* Study Log updates
+* Study Log deletion
+* Ownership enforcement
+* JWT authentication integration
+* PostgreSQL persistence
+
+Verified architecture:
+
+```text
+Client
+   ↓
+JWT Token
+   ↓
+get_current_user()
+   ↓
+Study Log Routes
+   ↓
+CRUD Layer
+   ↓
+SQLAlchemy ORM
+   ↓
+PostgreSQL
+```
+
+---
+
+## Key Concepts Learned
+
+### FastAPI
+
+* APIRouter
+* Route protection
+* Path parameters
+* Response models
+* Dependency injection
+
+### Authentication & Authorization
+
+* Current user dependency
+* JWT-protected endpoints
+* Ownership enforcement
+* User-scoped resources
+
+### CRUD Design
+
+* Create operations
+* Read operations
+* Update operations
+* Delete operations
+* Partial updates
+
+### SQLAlchemy
+
+* Query filtering
+* User-specific database queries
+* Database updates
+* Database deletion
+* Session management
+
+### Database Migrations
+
+* Schema evolution
+* Alembic revision generation
+* Migration execution
+* PostgreSQL synchronization
+
+---
+
+## Current Architecture
+
+```text
+Client
+   ↓
+JWT Token
+   ↓
+Authentication Layer
+   ↓
+Study Log Routes
+   ↓
+Ownership Validation
+   ↓
+CRUD Layer
+   ↓
+SQLAlchemy ORM
+   ↓
+PostgreSQL
+```
+
+---
+
+# Next Phase
+
+## Phase 5 — Memory Layer Foundation
+
+Planned topics:
+
+* Memory model creation
+* Memory schemas
+* Memory CRUD layer
+* Memory ownership
+* Memory storage APIs
+* Memory retrieval APIs
+* Memory categorization
+* User-specific memory management
+
+### Goal
+
+Transform raw Study Logs into structured memories that can later be used by retrieval, semantic search, and RAG systems.
