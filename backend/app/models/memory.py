@@ -36,3 +36,9 @@ class Memory(Base):
         "StudyLog",
         back_populates="memories"
     )
+    embedding = relationship(
+        "MemoryEmbedding",
+        back_populates="memory",
+        uselist=False,
+        cascade="all, delete-orphan"
+    )

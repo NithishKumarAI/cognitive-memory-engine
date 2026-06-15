@@ -1,5 +1,14 @@
 from sqlalchemy.orm import Session
 
+from app.services.embedding_service import (
+    generate_embedding,
+    MODEL_NAME
+)
+
+from app.crud.memory_embedding import (
+    create_memory_embedding
+)
+
 from app.models.memory import Memory
 from app.schemas.memory import (
     MemoryCreate,
@@ -23,6 +32,22 @@ def create_memory(
     db.add(db_memory)
     db.commit()
     db.refresh(db_memory)
+
+    embedding_text = (
+        f"{db_memory.title}\n\n"
+        f"{db_memory.content}"
+    )
+
+    embedding = generate_embedding(
+        embedding_text
+    )
+
+    create_memory_embedding(
+        db=db,
+        memory_id=db_memory.id,
+        model_name=MODEL_NAME,
+        embedding=embedding
+    )
 
     return db_memory
 

@@ -1,9 +1,7 @@
-from app.schemas.user import UserCreate
+from app.services.embedding_service import generate_embedding
 
-user = UserCreate(
-    username="nithish",
-    email="test@example.com",
-    password="secret123"
+embedding = generate_embedding(
+    "I studied machine learning today"
 )
 
-print(user)
+print(len(embedding))
