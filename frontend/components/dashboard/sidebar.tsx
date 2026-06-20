@@ -41,7 +41,7 @@ export function DashboardSidebar() {
 
       <nav className="space-y-1" aria-label="Dashboard navigation">
         {sidebarItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+          const isActive =  item.href === "/dashboard"? pathname === "/dashboard": pathname === item.href || pathname.startsWith(`${item.href}/`);
           const Icon = item.icon;
 
           return (

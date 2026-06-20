@@ -49,18 +49,18 @@ export function useAuth() {
   }, [refreshUser]);
 
   const login = useCallback(
-    async (payload: LoginPayload) => {
+    async (payload: LoginPayload, redirectTo = "/dashboard") => {
       await loginRequest(payload);
       await refreshUser();
-      router.replace("/dashboard");
+      router.replace(redirectTo);
     },
     [refreshUser, router],
   );
 
   const register = useCallback(
-    async (payload: RegisterPayload) => {
+    async (payload: RegisterPayload, redirectTo = "/dashboard") => {
       await registerRequest(payload);
-      await login(payload);
+      await login(payload, redirectTo);
     },
     [login],
   );

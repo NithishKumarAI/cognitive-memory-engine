@@ -1,5 +1,7 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import app.models
+from app.core.config import FRONTEND_ORIGINS
 from app.db.database import test_connection
 
 from app.routes.user import router as user_router
@@ -14,6 +16,13 @@ app = FastAPI(
     title="Cognitive Memory Engine",
     version="1.0.0"
 )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=FRONTEND_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(user_router)
 app.include_router(study_log_router)
@@ -23,6 +32,7 @@ app.include_router(analytics.router)
 app.include_router(learning_track_router)
 app.include_router(recommendation.router)
 
+@app.get("/")
 def root():
     return {
         "message": "Cognitive Memory Engine API is running"

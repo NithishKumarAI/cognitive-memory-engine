@@ -32,7 +32,8 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      await login(values);
+      const redirectTo = new URLSearchParams(window.location.search).get("next") ?? "/dashboard";
+      await login(values, redirectTo);
     } catch (caughtError) {
       const message =
         caughtError instanceof AxiosError

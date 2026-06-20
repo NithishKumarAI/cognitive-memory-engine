@@ -16,6 +16,7 @@ def create_study_log(
         topic=study_log.topic,
         duration_minutes=study_log.duration_minutes,
         notes=study_log.notes,
+        learning_track_id=study_log.learning_track_id,
         user_id=user_id
     )
 

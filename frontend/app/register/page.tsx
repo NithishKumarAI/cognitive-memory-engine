@@ -33,7 +33,8 @@ export default function RegisterPage() {
     setError(null);
 
     try {
-      await createAccount(values);
+      const redirectTo = new URLSearchParams(window.location.search).get("next") ?? "/dashboard";
+      await createAccount(values, redirectTo);
     } catch (caughtError) {
       const message =
         caughtError instanceof AxiosError
