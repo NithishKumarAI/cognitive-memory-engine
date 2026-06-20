@@ -43,6 +43,8 @@ export function useAuth() {
   }, []);
 
   useEffect(() => {
+    // Auth state is bootstrapped from localStorage and then verified through /me.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void refreshUser();
   }, [refreshUser]);
 
