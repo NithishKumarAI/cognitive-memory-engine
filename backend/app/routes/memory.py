@@ -40,7 +40,6 @@ router = APIRouter(
     prefix="/memories",
     tags=["Memories"]
 )
-
 @router.post(
     "",
     response_model=MemoryResponse
@@ -137,7 +136,19 @@ def update_existing_memory(
             status_code=403,
             detail="Access denied"
         )
+    if memory_update.study_log_id is not None:
 
+        study_log = get_study_log(
+            db=db,
+            study_log_id=memory_update.study_log_id,
+            user_id=current_user.id
+        )
+
+        if not study_log:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid study_log_id"
+            )
     return update_memory(
         db,
         memory,

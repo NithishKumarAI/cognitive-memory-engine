@@ -14,6 +14,14 @@ class StudyLog(Base):
         ForeignKey("users.id"),
         nullable=False
     )
+    learning_track_id = Column(
+        Integer,
+        ForeignKey(
+            "learning_tracks.id",
+            ondelete="SET NULL"
+        ),
+        nullable=True
+    )
 
     topic = Column(
         String(255),
@@ -34,8 +42,14 @@ class StudyLog(Base):
         String,
         nullable=False
     )
+
     owner = relationship(
         "User",
+        back_populates="study_logs"
+    )
+
+    learning_track = relationship(
+        "LearningTrack",
         back_populates="study_logs"
     )
 

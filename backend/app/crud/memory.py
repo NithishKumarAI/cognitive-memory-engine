@@ -6,7 +6,8 @@ from app.services.embedding_service import (
 )
 
 from app.crud.memory_embedding import (
-    create_memory_embedding
+    create_memory_embedding,
+    update_memory_embedding
 )
 
 from app.models.memory import Memory
@@ -83,6 +84,14 @@ def update_memory(
         exclude_unset=True
     )
 
+    embedding_needs_update = False
+
+    if (
+        "title" in update_data or
+        "content" in update_data
+    ):
+        embedding_needs_update = True
+
     for field, value in update_data.items():
         setattr(
             db_memory,
@@ -92,6 +101,25 @@ def update_memory(
 
     db.commit()
     db.refresh(db_memory)
+
+    if embedding_needs_update:
+
+        embedding_text = (
+            f"{db_memory.title}\n\n"
+            f"{db_memory.content}"
+        )
+
+        embedding = generate_embedding(
+            embedding_text
+        )
+
+        update_memory_embedding(
+            db=db,
+            memory_id=db_memory.id,
+            embedding=embedding,
+            model_name=MODEL_NAME
+        )
+        print("Regenerating embedding...")
 
     return db_memory
 

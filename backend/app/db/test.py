@@ -1,7 +1,17 @@
-from app.services.embedding_service import generate_embedding
+from app.db.database import SessionLocal
 
-embedding = generate_embedding(
-    "I studied machine learning today"
+from app.crud.conversation import create_conversation
+
+
+db = SessionLocal()
+
+conversation = create_conversation(
+    db=db,
+    user_id=4,
+    message="Test Question",
+    response="Test Response"
 )
 
-print(len(embedding))
+print(conversation.id)
+print(conversation.message)
+print(conversation.response)

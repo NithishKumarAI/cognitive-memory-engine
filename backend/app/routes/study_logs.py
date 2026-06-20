@@ -20,6 +20,10 @@ from app.crud.study_logs import (
     delete_study_log
 )
 
+from app.crud.learning_track import (
+    get_learning_track
+)
+
 
 router = APIRouter(
     prefix="/study-logs",
@@ -36,6 +40,19 @@ def create_new_study_log(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    if study_log.learning_track_id is not None:
+
+        learning_track = get_learning_track(
+            db=db,
+            track_id=study_log.learning_track_id,
+            user_id=current_user.id
+        )
+
+        if not learning_track:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid learning_track_id"
+            )
     return create_study_log(
         db=db,
         study_log=study_log,
@@ -98,7 +115,22 @@ def update_user_study_log(
             status_code=404,
             detail="Study log not found"
         )
+    if (
+            study_log_update.learning_track_id
+            is not None
+    ):
 
+        learning_track = get_learning_track(
+            db=db,
+            track_id=study_log_update.learning_track_id,
+            user_id=current_user.id
+        )
+
+        if not learning_track:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid learning_track_id"
+            )
     return update_study_log(
         db=db,
         db_study_log=study_log,
