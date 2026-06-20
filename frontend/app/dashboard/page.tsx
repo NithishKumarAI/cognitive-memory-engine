@@ -1,9 +1,10 @@
 "use client";
 
 import { AxiosError } from "axios";
-import { Loader2 } from "lucide-react";
+import { BookOpenCheck, Brain, GraduationCap, Loader2, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { MetricCard } from "@/components/dashboard/metric-card";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,10 +51,10 @@ export default function DashboardPage() {
   }, []);
 
   const metrics = [
-    { label: "Active Tracks", value: counts.tracks },
-    { label: "Study Logs", value: counts.studyLogs },
-    { label: "Stored Memories", value: counts.memories },
-    { label: "Recommendations", value: counts.recommendations },
+    { icon: GraduationCap, label: "Active Tracks", value: counts.tracks },
+    { icon: BookOpenCheck, label: "Study Logs", value: counts.studyLogs },
+    { icon: Brain, label: "Stored Memories", value: counts.memories },
+    { icon: Sparkles, label: "Recommendations", value: counts.recommendations },
   ];
 
   return (
@@ -71,18 +72,18 @@ export default function DashboardPage() {
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {metrics.map((metric) => (
-          <Card key={metric.label}>
-            <CardHeader className="pb-2">
-              <CardDescription>{metric.label}</CardDescription>
-              <CardTitle className="text-3xl">
-                {isLoading ? (
-                  <Loader2 className="size-6 animate-spin text-muted-foreground" aria-label="Loading" />
-                ) : (
-                  metric.value
-                )}
-              </CardTitle>
-            </CardHeader>
-          </Card>
+          <MetricCard
+            icon={metric.icon}
+            key={metric.label}
+            label={metric.label}
+            value={
+              isLoading ? (
+                <Loader2 className="size-6 animate-spin text-muted-foreground" aria-label="Loading" />
+              ) : (
+                metric.value
+              )
+            }
+          />
         ))}
       </section>
 
