@@ -2540,3 +2540,485 @@ The Cognitive Memory Engine now functions as:
 
 ```
 ```
+# 10.5 Frontend Dashboard Architecture
+
+## Overview
+
+Phase 10 introduced the complete frontend application for the Cognitive Memory Engine.
+
+The system now includes a fully integrated Next.js dashboard that connects directly to the FastAPI backend.
+
+Users can now interact with all major Cognitive Memory Engine features through a modern web interface.
+
+---
+
+## Frontend Technology Stack
+
+Implemented:
+
+* Next.js 16
+* TypeScript
+* TailwindCSS
+* shadcn/ui
+* Axios
+* Recharts
+
+---
+
+## Frontend Architecture
+
+```text
+frontend/
+├── app/
+├── components/
+├── hooks/
+├── services/
+├── types/
+├── lib/
+├── public/
+```
+
+Responsibilities:
+
+```text
+app/
+    Routing Layer
+
+components/
+    Reusable UI Components
+
+services/
+    API Communication Layer
+
+types/
+    TypeScript Contracts
+
+hooks/
+    Client State Logic
+
+lib/
+    Shared Utilities
+```
+
+---
+
+## Frontend Request Flow
+
+```text
+User
+   ↓
+Next.js Page
+   ↓
+Component Layer
+   ↓
+Service Layer
+   ↓
+Axios Client
+   ↓
+JWT Authentication
+   ↓
+FastAPI API
+   ↓
+PostgreSQL
+```
+
+---
+
+## Authentication Architecture
+
+Implemented:
+
+```text
+Register
+Login
+Protected Routes
+Logout
+JWT Storage
+```
+
+Authentication flow:
+
+```text
+User Login
+      ↓
+POST /login
+      ↓
+JWT Token
+      ↓
+Local Storage
+      ↓
+Axios Interceptor
+      ↓
+Authorization Header
+      ↓
+Protected API Access
+```
+
+---
+
+## Dashboard Architecture
+
+Implemented sections:
+
+```text
+Dashboard
+Learning Tracks
+Study Logs
+Memories
+Chat
+Analytics
+Recommendations
+```
+
+Navigation is managed through a unified dashboard layout.
+
+---
+
+## Learning Track UI Layer
+
+Connected endpoints:
+
+```http
+GET    /learning-tracks
+POST   /learning-tracks
+PUT    /learning-tracks/{id}
+DELETE /learning-tracks/{id}
+```
+
+Capabilities:
+
+* Create tracks
+* Update tracks
+* Delete tracks
+* View tracks
+
+---
+
+## Study Log UI Layer
+
+Connected endpoints:
+
+```http
+GET    /study-logs
+POST   /study-logs
+PUT    /study-logs/{id}
+DELETE /study-logs/{id}
+```
+
+Capabilities:
+
+* Create logs
+* Update logs
+* Delete logs
+* View logs
+
+---
+
+## Memory UI Layer
+
+Connected endpoints:
+
+```http
+GET    /memories
+POST   /memories
+PUT    /memories/{id}
+DELETE /memories/{id}
+```
+
+Capabilities:
+
+* Create memories
+* Update memories
+* Delete memories
+* View memory details
+
+---
+
+## RAG Chat Architecture
+
+Connected endpoint:
+
+```http
+POST /rag/ask
+```
+
+Pipeline:
+
+```text
+User Question
+      ↓
+Frontend Chat UI
+      ↓
+RAG Endpoint
+      ↓
+Semantic Retrieval
+      ↓
+Gemini Generation
+      ↓
+Source Attribution
+      ↓
+Chat Response
+```
+
+---
+
+## Analytics Dashboard Architecture
+
+Connected endpoints:
+
+```http
+GET /analytics/overview
+GET /analytics/topic-distribution
+GET /analytics/daily-activity
+GET /analytics/consistency
+```
+
+Visualization:
+
+```text
+Summary Cards
+Topic Charts
+Daily Activity Charts
+Consistency Indicators
+```
+
+Implemented using:
+
+```text
+Recharts
+```
+
+---
+
+## Recommendation Dashboard Architecture
+
+Connected endpoint:
+
+```http
+GET /recommendations/daily
+```
+
+Capabilities:
+
+* Daily recommendation feed
+* Priority indicators
+* Recommendation cards
+
+---
+
+## Current Full-System Architecture
+
+```text
+User
+   ↓
+Next.js Frontend
+   ↓
+Authentication Layer
+   ↓
+FastAPI Backend
+   ↓
+LearningTrack
+   ↓
+StudyLog
+   ↓
+Memory
+   ↓
+MemoryEmbedding
+   ↓
+pgvector
+   ↓
+RAG System
+   ↓
+Analytics Engine
+   ↓
+Recommendation Engine
+```
+
+---
+
+## Current Capabilities
+
+The Cognitive Memory Engine can now:
+
+* Register users
+* Authenticate users
+* Create Learning Tracks
+* Create Study Logs
+* Create Memories
+* Generate Embeddings
+* Perform Semantic Retrieval
+* Generate RAG Responses
+* Display Source Attribution
+* Generate Analytics
+* Generate Recommendations
+* Provide a Complete Frontend Experience
+
+The Cognitive Memory Engine is now an end-to-end full-stack AI learning platform.
+
+
+# Phase 11 — Production Deployment & Cloud Architecture
+
+## Status
+
+✅ Completed
+
+## Objectives
+
+### Backend Deployment
+
+* [x] Dockerize FastAPI backend
+* [x] Build production backend image
+* [x] Push image to Google Artifact Registry
+* [x] Deploy backend to Google Cloud Run
+* [x] Configure environment variables
+* [x] Configure Neon PostgreSQL connection
+* [x] Verify health endpoint
+
+### Frontend Deployment
+
+* [x] Dockerize Next.js frontend
+* [x] Build production frontend image
+* [x] Push image to Google Artifact Registry
+* [x] Deploy frontend to Google Cloud Run
+* [x] Configure production API URL
+* [x] Verify frontend deployment
+
+### Database Migration
+
+* [x] Configure Neon PostgreSQL
+* [x] Execute Alembic migrations
+* [x] Verify pgvector extension
+* [x] Verify HNSW index
+* [x] Verify production tables
+
+---
+
+## Production Architecture
+
+```text
+User
+   ↓
+Next.js Frontend (Cloud Run)
+   ↓
+Axios API Layer
+   ↓
+FastAPI Backend (Cloud Run)
+   ↓
+JWT Authentication
+   ↓
+Business Services
+   ↓
+PostgreSQL (Neon)
+   ↓
+pgvector
+   ↓
+HNSW Similarity Search
+```
+
+---
+
+## Production Infrastructure
+
+### Frontend
+
+Technology:
+
+* Next.js 16
+* TypeScript
+* TailwindCSS
+* shadcn/ui
+
+Hosting:
+
+* Google Cloud Run
+
+---
+
+### Backend
+
+Technology:
+
+* FastAPI
+* SQLAlchemy
+* Alembic
+* JWT Authentication
+
+Hosting:
+
+* Google Cloud Run
+
+---
+
+### Database
+
+Technology:
+
+* PostgreSQL
+* pgvector
+* HNSW Index
+
+Hosting:
+
+* Neon PostgreSQL
+
+---
+
+### AI Stack
+
+Embedding Model:
+
+```text
+BAAI/bge-base-en-v1.5
+```
+
+LLM:
+
+```text
+Gemini 2.5 Flash
+```
+
+Capabilities:
+
+* Semantic Search
+* Retrieval-Augmented Generation
+* Source Attribution
+* Citation Support
+
+---
+
+## Production URLs
+
+Frontend:
+
+```text
+https://cognitive-memory-frontend-244986175934.asia-south1.run.app
+```
+
+Backend:
+
+```text
+https://cognitive-memory-backend-244986175934.asia-south1.run.app
+```
+
+---
+
+## Final System Capabilities
+
+The Cognitive Memory Engine now supports:
+
+* User Authentication
+* Learning Tracks
+* Study Logs
+* Memories
+* Embeddings
+* Semantic Retrieval
+* RAG Chat
+* Analytics
+* Recommendations
+* Frontend Dashboard
+* Cloud Deployment
+* Production Database
+* Vector Search
+* AI-Powered Learning Assistance
+
+The project is now a fully deployed end-to-end AI learning platform.
