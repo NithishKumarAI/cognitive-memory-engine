@@ -69,7 +69,6 @@ Planned but not yet implemented in the repository:
 * Vercel
 * Railway
 * Neon / Supabase
-* Notion API integration
 
 ---
 
