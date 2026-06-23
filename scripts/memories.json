@@ -1,0 +1,170 @@
+[
+{
+"title": "Understanding Linear Regression",
+"content": "Today I reviewed the mathematical foundation of linear regression and how ordinary least squares minimizes prediction error. Gradient descent helps optimize model parameters efficiently.",
+"category": "Machine Learning",
+"study_log_id": 1
+},
+{
+"title": "Bias Variance Tradeoff",
+"content": "Studied how model complexity affects underfitting and overfitting. Cross-validation provides a practical way to estimate generalization performance.",
+"category": "Machine Learning",
+"study_log_id": 2
+},
+{
+"title": "Random Forest Ensembles",
+"content": "Random forests combine multiple decision trees trained on different subsets of data. This reduces overfitting and improves prediction stability.",
+"category": "Machine Learning",
+"study_log_id": 3
+},
+{
+"title": "Support Vector Machines",
+"content": "Learned how support vector machines use hyperplanes and kernels to separate complex datasets. The maximum-margin principle improves classification robustness.",
+"category": "Machine Learning",
+"study_log_id": 4
+},
+{
+"title": "Clustering with K-Means",
+"content": "Implemented K-Means clustering and explored how the elbow method helps determine the optimal number of clusters.",
+"category": "Machine Learning",
+"study_log_id": 5
+},
+{
+"title": "Feature Engineering Techniques",
+"content": "Studied feature scaling, encoding categorical variables, and handling missing values. Better features often improve model performance more than algorithm changes.",
+"category": "Machine Learning",
+"study_log_id": 6
+},
+{
+"title": "Backpropagation Fundamentals",
+"content": "Worked through the mathematics of backpropagation and gradient computation. Understanding gradient flow clarified how neural networks learn.",
+"category": "Deep Learning",
+"study_log_id": 7
+},
+{
+"title": "Activation Functions",
+"content": "Compared ReLU, Sigmoid, and Tanh activation functions. ReLU remains popular because it helps mitigate vanishing gradients.",
+"category": "Deep Learning",
+"study_log_id": 8
+},
+{
+"title": "Convolutional Neural Networks",
+"content": "Built a simple CNN and explored convolutional filters, pooling layers, and feature extraction for image classification.",
+"category": "Deep Learning",
+"study_log_id": 9
+},
+{
+"title": "Reducing Overfitting",
+"content": "Applied dropout and regularization techniques to improve generalization performance in deep neural networks.",
+"category": "Deep Learning",
+"study_log_id": 10
+},
+{
+"title": "Recurrent Neural Networks",
+"content": "Studied how recurrent neural networks process sequential information using hidden states across time steps.",
+"category": "Deep Learning",
+"study_log_id": 11
+},
+{
+"title": "LSTM Networks",
+"content": "Learned how LSTMs solve long-term dependency issues through forget, input, and output gates.",
+"category": "Deep Learning",
+"study_log_id": 12
+},
+{
+"title": "Transformer Architecture",
+"content": "Studied self-attention mechanisms and parallel sequence processing. Transformers form the foundation of modern language models.",
+"category": "Large Language Models",
+"study_log_id": 13
+},
+{
+"title": "Positional Encoding",
+"content": "Explored how positional encoding introduces sequence order information into transformer architectures.",
+"category": "Large Language Models",
+"study_log_id": 14
+},
+{
+"title": "Prompt Engineering",
+"content": "Practiced zero-shot, few-shot, and chain-of-thought prompting techniques to improve language model responses.",
+"category": "Large Language Models",
+"study_log_id": 15
+},
+{
+"title": "Fine Tuning Strategies",
+"content": "Compared full fine-tuning with parameter-efficient approaches such as LoRA for adapting language models.",
+"category": "Large Language Models",
+"study_log_id": 16
+},
+{
+"title": "Tokenization Methods",
+"content": "Studied Byte Pair Encoding and WordPiece tokenization techniques used by modern language models.",
+"category": "Large Language Models",
+"study_log_id": 17
+},
+{
+"title": "Model Alignment",
+"content": "Explored hallucination reduction strategies and reinforcement learning from human feedback for language model alignment.",
+"category": "Large Language Models",
+"study_log_id": 18
+},
+{
+"title": "Core Concepts of RAG",
+"content": "Studied retrieval-augmented generation and how retrieved knowledge improves answer grounding and reduces hallucinations.",
+"category": "RAG Systems",
+"study_log_id": 1
+},
+{
+"title": "Vector Databases",
+"content": "Explored vector databases and similarity search techniques for storing and retrieving semantic embeddings efficiently.",
+"category": "RAG Systems",
+"study_log_id": 2
+},
+{
+"title": "Memory Based Retrieval",
+"content": "Studied how structured memories can be embedded and retrieved using semantic similarity search. Retrieved memories provide context for generated answers.",
+"category": "RAG Systems",
+"study_log_id": 3
+},
+{
+"title": "Embedding Models",
+"content": "Compared embedding models and their impact on semantic retrieval quality. Better embeddings improve search relevance.",
+"category": "RAG Systems",
+"study_log_id": 4
+},
+{
+"title": "Semantic Search with pgvector",
+"content": "Studied how pgvector stores embeddings and performs cosine similarity search. HNSW indexing improves retrieval performance.",
+"category": "RAG Systems",
+"study_log_id": 5
+},
+{
+"title": "Context Assembly for RAG",
+"content": "Explored how retrieved memories are assembled into a context block before being sent to Gemini for answer generation.",
+"category": "RAG Systems",
+"study_log_id": 6
+},
+{
+"title": "Grounded Response Evaluation",
+"content": "Evaluated whether generated responses accurately referenced retrieved memories. Source attribution improves answer transparency.",
+"category": "RAG Systems",
+"study_log_id": 7
+},
+{
+"title": "pgvector Integration",
+"content": "Integrated pgvector into PostgreSQL and created HNSW indexes for efficient semantic retrieval of learning memories.",
+"category": "Project Development",
+"study_log_id": 13
+},
+{
+"title": "Gemini RAG Pipeline",
+"content": "Implemented a retrieval-augmented generation workflow using semantic search, context assembly, and Gemini 2.5 Flash.",
+"category": "Project Development",
+"study_log_id": 14
+},
+{
+"title": "Learning Intelligence Architecture",
+"content": "Designed a pipeline connecting learning tracks, study logs, memories, embeddings, analytics, and recommendations into a unified learning intelligence platform.",
+"category": "Project Development",
+"study_log_id": 15
+}
+]

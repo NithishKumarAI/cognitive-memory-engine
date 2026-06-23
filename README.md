@@ -11,6 +11,60 @@ The system allows users to create Learning Tracks, log study sessions, store str
 Unlike traditional note-taking applications, Cognitive Memory Engine combines semantic memory, vector search, analytics, and recommendation systems to create a searchable and actionable learning knowledge base.
 
 ---
+## Screenshots
+
+### Dashboard Overview
+
+![Dashboard Overview](docs/screenshots/dashboard-overview.png)
+
+---
+
+### Learning Tracks
+
+![Learning Tracks](docs/screenshots/learning-tracks.png)
+
+---
+
+### Study Logs
+
+![Study Logs](docs/screenshots/study-logs.png)
+
+---
+
+### Memory Management
+
+![Memory Management](docs/screenshots/memories.png)
+
+---
+
+### Semantic RAG Chat
+
+![RAG Chat](docs/screenshots/rag-chat.png)
+
+---
+
+### Analytics Dashboard
+
+![Analytics Dashboard](docs/screenshots/analytics.png)
+
+---
+
+### Recommendations Engine
+
+![Recommendations](docs/screenshots/recommendations.png)
+
+---
+
+### PostgreSQL + pgvector Database
+
+![Database](docs/screenshots/database.png)
+
+---
+
+### Google Cloud Run Deployment
+
+![Cloud Deployment](docs/screenshots/cloud-run.png)
+ 
 
 ## Key Features
 
