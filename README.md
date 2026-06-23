@@ -1,5 +1,11 @@
 # Cognitive Memory Engine
 
+![Status](https://img.shields.io/badge/status-deployed-success)
+![FastAPI](https://img.shields.io/badge/backend-FastAPI-green)
+![Next.js](https://img.shields.io/badge/frontend-Next.js-black)
+![PostgreSQL](https://img.shields.io/badge/database-PostgreSQL-blue)
+![pgvector](https://img.shields.io/badge/vector-pgvector-purple)
+
 > A full-stack AI-powered learning intelligence platform that transforms study activity into structured memories, semantic retrieval, personalized analytics, and learning recommendations.
 
 ## Overview
@@ -11,59 +17,60 @@ The system allows users to create Learning Tracks, log study sessions, store str
 Unlike traditional note-taking applications, Cognitive Memory Engine combines semantic memory, vector search, analytics, and recommendation systems to create a searchable and actionable learning knowledge base.
 
 ---
+## Why This Project?
+
+Traditional note-taking systems store information but do not help users understand learning progress.
+
+Cognitive Memory Engine transforms study activity into structured memories, semantic retrieval, analytics, and personalized recommendations, creating a searchable learning intelligence system.
+
+---
+
+## Live Demo
+
+Frontend:
+https://cognitive-memory-frontend-244986175934.asia-south1.run.app/
+
+Backend API:
+https://cognitive-memory-backend-244986175934.asia-south1.run.app/docs
+
+---
+## Project Highlights
+
+- Built a full-stack AI Learning Intelligence Platform using FastAPI, PostgreSQL, pgvector, Gemini 2.5 Flash, and Next.js
+- Implemented semantic memory retrieval using vector embeddings and HNSW indexing
+- Developed a Retrieval-Augmented Generation (RAG) pipeline with source attribution
+- Built analytics services for learning progress, consistency tracking, and topic analysis
+- Designed a recommendation engine for neglected topics, weak areas, and learning continuity
+- Deployed frontend and backend services on Google Cloud Run
+- Integrated Neon PostgreSQL with pgvector for scalable semantic search
 ## Screenshots
 
 ### Dashboard Overview
 
-![Dashboard Overview](docs/screenshots/dashboard-overview.png)
-
----
-
-### Learning Tracks
-
-![Learning Tracks](docs/screenshots/learning-tracks.png)
-
----
-
-### Study Logs
-
-![Study Logs](docs/screenshots/study-logs.png)
-
----
-
-### Memory Management
-
-![Memory Management](docs/screenshots/memories.png)
+![Dashboard Overview](screenshots/dashboard.png)
 
 ---
 
 ### Semantic RAG Chat
 
-![RAG Chat](docs/screenshots/rag-chat.png)
+![RAG Chat](screenshots/rag-chat.png)
 
 ---
 
 ### Analytics Dashboard
 
-![Analytics Dashboard](docs/screenshots/analytics.png)
+![Analytics Dashboard](screenshots/analytics.png)
 
 ---
 
 ### Recommendations Engine
 
-![Recommendations](docs/screenshots/recommendations.png)
+![Recommendations](screenshots/recommendations.png)
 
 ---
 
-### PostgreSQL + pgvector Database
 
-![Database](docs/screenshots/database.png)
-
----
-
-### Google Cloud Run Deployment
-
-![Cloud Deployment](docs/screenshots/cloud-run.png)
+--
  
 
 ## Key Features
@@ -126,30 +133,14 @@ Unlike traditional note-taking applications, Cognitive Memory Engine combines se
 
 ## Learning Intelligence Architecture
 
-The platform is built around a learning intelligence pipeline:
 
-```text
-Learning Track
-    ↓
-Study Log
-    ↓
-Memory
-    ↓
-Embedding
-    ↓
-Semantic Retrieval
-    ↓
-Analytics
-    ↓
-Recommendations
-```
+The platform is built around a learning intelligence pipeline that transforms learning activity into structured knowledge, semantic retrieval, analytics, and personalized recommendations.
 
-This architecture transforms raw study activity into searchable knowledge and actionable learning insights.
-
+![Learning Intelligence Architecture](diagrams/learning-intelligence-architecture.png)
 ---
 
 ## High-Level Architecture
-
+![High-Level Architecture](diagrams/high-level-architecture.png)
 ```mermaid
 flowchart TD
 
@@ -179,7 +170,7 @@ Backend --> Embed
 ---
 
 ## RAG Architecture
-
+![RAG Architecture](diagrams/rag-architecture.png)
 ```mermaid
 flowchart TD
 
@@ -209,7 +200,7 @@ L --> R
 ---
 
 ## Learning Intelligence Architecture
-
+![Learning Intelligence Architecture](diagrams/learning-intelligence-architecture.png)
 ```mermaid
 flowchart TD
 
@@ -243,7 +234,7 @@ AN --> REC
 ---
 
 ## Deployment Architecture
-
+![Deployment Architecture](diagrams/deployment-architecture.png)
 ```mermaid
 flowchart TD
 
@@ -275,7 +266,20 @@ Backend --> Embedding
 ```
 
 ---
+## Repository Structure
 
+```text
+cognitive-memory-engine/
+├── backend/
+├── frontend/
+├── docs/
+│   ├── architecture/
+│   └── screenshots/
+├── README.md
+├── PROJECT_ARCHITECTURE_REPORT.md
+├── PROJECT_PROGRESS.md
+└── LICENSE
+---
 ## Technology Stack
 
 ### Backend
@@ -433,7 +437,16 @@ npm run dev
 ---
 
 ## Production Deployment
+### Live Deployment
 
+Frontend:
+https://cognitive-memory-frontend-244986175934.asia-south1.run.app
+
+Backend:
+https://cognitive-memory-backend-244986175934.asia-south1.run.app
+
+API Documentation:
+https://cognitive-memory-backend-244986175934.asia-south1.run.app/docs
 ### Backend
 
 * Dockerized FastAPI application
@@ -453,22 +466,19 @@ npm run dev
 
 ---
 
-## Screenshots
 
-Add screenshots for:
+## Key Learnings
 
-* Login Page
-* Dashboard Overview
-* Learning Tracks
-* Study Logs
-* Memory Management
-* RAG Chat Interface
-* Analytics Dashboard
-* Recommendations Dashboard
-* Cloud Run Deployment
-* PostgreSQL Database
+Through this project I gained practical experience with:
 
----
+- Designing layered FastAPI backend architectures
+- Implementing vector search using pgvector and HNSW indexing
+- Building Retrieval-Augmented Generation systems with Gemini
+- Developing analytics and recommendation pipelines
+- Managing PostgreSQL databases in production
+- Containerizing applications with Docker
+- Deploying scalable services on Google Cloud Run
+- Building full-stack applications with Next.js and TypeScript
 
 ## Future Improvements
 
