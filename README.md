@@ -43,6 +43,25 @@ https://cognitive-memory-backend-244986175934.asia-south1.run.app/docs
 - Designed a recommendation engine for neglected topics, weak areas, and learning continuity
 - Deployed frontend and backend services on Google Cloud Run
 - Integrated Neon PostgreSQL with pgvector for scalable semantic search
+## Core Learning Pipeline
+
+```text
+Learning Track
+        ↓
+    Study Log
+        ↓
+      Memory
+        ↓
+     Embedding
+        ↓
+ Semantic Retrieval
+        ↓
+       RAG
+        ↓
+    Analytics
+        ↓
+  Recommendations
+```
 ## Screenshots
 
 ### Dashboard Overview
@@ -129,14 +148,6 @@ https://cognitive-memory-backend-244986175934.asia-south1.run.app/docs
 * Google Cloud Run deployment
 * Neon PostgreSQL integration
 
----
-
-## Learning Intelligence Architecture
-
-
-The platform is built around a learning intelligence pipeline that transforms learning activity into structured knowledge, semantic retrieval, analytics, and personalized recommendations.
-
-![Learning Intelligence Architecture](diagrams/learning-intelligence-architecture.png)
 ---
 
 ## High-Level Architecture
@@ -275,11 +286,12 @@ cognitive-memory-engine/
 ├── docs/
 │   ├── architecture/
 │   └── screenshots/
+├── diagrams/
 ├── README.md
 ├── PROJECT_ARCHITECTURE_REPORT.md
 ├── PROJECT_PROGRESS.md
 └── LICENSE
----
+```
 ## Technology Stack
 
 ### Backend
@@ -482,15 +494,17 @@ Through this project I gained practical experience with:
 
 ## Future Improvements
 
+* AI-powered voice note ingestion
 * Document ingestion and file uploads
 * Conversation-aware retrieval
+* Agentic learning coach
 * Hybrid search
 * Cross-encoder reranking
 * Conversation history UI
 * Usage-limit enforcement
 * Automated testing
 * CI/CD pipeline
-* Advanced learning intelligence features
+* Advanced learning intelligence engine
 
 ---
 
