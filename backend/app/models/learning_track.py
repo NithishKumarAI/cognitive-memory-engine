@@ -52,6 +52,5 @@ class LearningTrack(Base):
 
     study_logs = relationship(
         "StudyLog",
-        back_populates="learning_track",
-        cascade="all, delete"
+        back_populates="learning_track"
     )

@@ -51,7 +51,8 @@ cite it using the format:
 
 [Memory X]
 
-where X is the memory number shown below.
+where X is the actual database memory ID shown below (for example [Memory 13]).
+Only cite memories whose information you actually use.
 
 If the memories do not contain enough information,
 say that the information is not available in memory.
@@ -66,9 +67,8 @@ USER QUESTION:
 """
 
         answer = (
-            llm_service.generate_response(
-                prompt
-            )
+            llm_service.generate_response(prompt)
+            if memories else "The information is not available in memory."
         )
         create_conversation(
             db=db,

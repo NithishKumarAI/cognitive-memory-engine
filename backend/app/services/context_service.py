@@ -13,11 +13,11 @@ class ContextService:
 
         context_parts = []
 
-        for index, memory in enumerate(memories, start=1):
+        for memory in memories:
 
             context_parts.append(
                 f"""
-Memory {index}
+Memory {memory.id}
 Title: {memory.title}
 Category: {memory.category}
 

@@ -1,3 +1,5 @@
+from math import isfinite
+
 from sqlalchemy.orm import Session
 
 from app.services.embedding_service import (
@@ -17,39 +19,33 @@ from app.schemas.memory import (
 )
 
 
+def validated_embedding(text: str) -> list[float]:
+    embedding = [float(value) for value in generate_embedding(text)]
+    if len(embedding) != 768 or not all(isfinite(value) for value in embedding):
+        raise ValueError("Invalid embedding")
+    return embedding
+
+
 def create_memory(
     db: Session,
     memory: MemoryCreate,
     user_id: int
 ):
-    db_memory = Memory(
-        title=memory.title,
-        content=memory.content,
-        category=memory.category,
-        study_log_id=memory.study_log_id,
-        user_id=user_id
-    )
-
-    db.add(db_memory)
-    db.commit()
+    try:
+        embedding = validated_embedding(f"{memory.title}\n\n{memory.content}")
+        db_memory = Memory(**memory.model_dump(), user_id=user_id)
+        db.add(db_memory)
+        db.flush()
+        create_memory_embedding(
+            db=db, memory_id=db_memory.id, model_name=MODEL_NAME,
+            embedding=embedding, commit=False,
+        )
+        db.flush()
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     db.refresh(db_memory)
-
-    embedding_text = (
-        f"{db_memory.title}\n\n"
-        f"{db_memory.content}"
-    )
-
-    embedding = generate_embedding(
-        embedding_text
-    )
-
-    create_memory_embedding(
-        db=db,
-        memory_id=db_memory.id,
-        model_name=MODEL_NAME,
-        embedding=embedding
-    )
-
     return db_memory
 
 
@@ -80,47 +76,29 @@ def update_memory(
     db_memory: Memory,
     memory_update: MemoryUpdate
 ):
-    update_data = memory_update.model_dump(
-        exclude_unset=True
-    )
-
-    embedding_needs_update = False
-
-    if (
-        "title" in update_data or
-        "content" in update_data
-    ):
-        embedding_needs_update = True
-
-    for field, value in update_data.items():
-        setattr(
-            db_memory,
-            field,
-            value
+    update_data = memory_update.model_dump(exclude_unset=True)
+    try:
+        text_changed = any(
+            field in update_data and update_data[field] != getattr(db_memory, field)
+            for field in ("title", "content")
         )
-
-    db.commit()
+        if text_changed:
+            title = update_data.get("title", db_memory.title)
+            content = update_data.get("content", db_memory.content)
+            embedding = validated_embedding(f"{title}\n\n{content}")
+        for field, value in update_data.items():
+            setattr(db_memory, field, value)
+        if text_changed:
+            update_memory_embedding(
+                db=db, memory_id=db_memory.id, embedding=embedding,
+                model_name=MODEL_NAME, commit=False,
+            )
+        db.flush()
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     db.refresh(db_memory)
-
-    if embedding_needs_update:
-
-        embedding_text = (
-            f"{db_memory.title}\n\n"
-            f"{db_memory.content}"
-        )
-
-        embedding = generate_embedding(
-            embedding_text
-        )
-
-        update_memory_embedding(
-            db=db,
-            memory_id=db_memory.id,
-            embedding=embedding,
-            model_name=MODEL_NAME
-        )
-        print("Regenerating embedding...")
-
     return db_memory
 
 

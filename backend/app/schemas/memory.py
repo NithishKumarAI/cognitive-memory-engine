@@ -1,18 +1,19 @@
 from pydantic import BaseModel
+from app.schemas.validation import NonBlank
 from typing import Optional
 
 
 class MemoryCreate(BaseModel):
-    title: str
-    content: str
+    title: NonBlank
+    content: NonBlank
     category: str
     study_log_id: Optional[int] = None
 
 
 class MemoryUpdate(BaseModel):
-    title: Optional[str] = None
-    content: Optional[str] = None
-    category: Optional[str] = None
+    title: NonBlank = None
+    content: NonBlank = None
+    category: str = None
     study_log_id: Optional[int] = None
 
 

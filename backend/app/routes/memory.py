@@ -63,11 +63,10 @@ def create_new_memory(
                 detail="Invalid study_log_id"
             )
 
-    return create_memory(
-        db=db,
-        memory=memory,
-        user_id=current_user.id
-    )
+    try:
+        return create_memory(db=db, memory=memory, user_id=current_user.id)
+    except Exception:
+        raise HTTPException(status_code=503, detail="Unable to save memory") from None
 
 @router.get(
     "",
@@ -149,11 +148,10 @@ def update_existing_memory(
                 status_code=400,
                 detail="Invalid study_log_id"
             )
-    return update_memory(
-        db,
-        memory,
-        memory_update
-    )
+    try:
+        return update_memory(db, memory, memory_update)
+    except Exception:
+        raise HTTPException(status_code=503, detail="Unable to save memory") from None
 
 @router.delete(
     "/{memory_id}"

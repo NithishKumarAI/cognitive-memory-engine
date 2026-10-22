@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel
+from app.schemas.validation import NonBlank
 
 
 class LearningTrackBase(BaseModel):
@@ -12,11 +13,11 @@ class LearningTrackBase(BaseModel):
 class LearningTrackCreate(
     LearningTrackBase
 ):
-    pass
+    name: NonBlank
 
 
 class LearningTrackUpdate(BaseModel):
-    name: Optional[str] = None
+    name: NonBlank = None
     description: Optional[str] = None
 
 

@@ -103,7 +103,7 @@ export function ChatInterface() {
                   <div className="mt-3 flex flex-wrap gap-2">
                     {message.sources.map((source) => (
                       <Badge key={`${message.id}-${source.memory_id}`}>
-                        [{source.memory_id}] {source.title}
+                        [Memory {source.memory_id}] {source.title}
                       </Badge>
                     ))}
                   </div>
@@ -138,11 +138,11 @@ export function ChatInterface() {
 
       <Card className="p-4">
         <h2 className="text-sm font-semibold text-foreground">Sources</h2>
-        <p className="mt-1 text-xs text-muted-foreground">Citations returned with the latest answer.</p>
+        <p className="mt-1 text-xs text-muted-foreground">Memories retrieved for the latest answer.</p>
 
         <div className="mt-4 space-y-3">
           {lastSources.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No citations yet.</p>
+            <p className="text-sm text-muted-foreground">No sources yet.</p>
           ) : null}
 
           {lastSources.map((source) => (
@@ -152,7 +152,7 @@ export function ChatInterface() {
               key={source.memory_id}
             >
               <div className="flex items-start justify-between gap-3">
-                <p className="text-sm font-medium text-foreground">[{source.memory_id}] {source.title}</p>
+                <p className="text-sm font-medium text-foreground">[Memory {source.memory_id}] {source.title}</p>
                 <Badge>{source.category}</Badge>
               </div>
               <p className="mt-2 text-xs text-muted-foreground">

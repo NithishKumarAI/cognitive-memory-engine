@@ -1,20 +1,21 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, PositiveInt
+from app.schemas.validation import NonBlank
 
 
 class StudyLogCreate(BaseModel):
-    topic: str
-    duration_minutes: int
+    topic: NonBlank
+    duration_minutes: PositiveInt
     notes: str
 
     learning_track_id: int | None = None
 
 
 class StudyLogUpdate(BaseModel):
-    topic: str | None = None
-    duration_minutes: int | None = None
-    notes: str | None = None
+    topic: NonBlank = None
+    duration_minutes: PositiveInt = None
+    notes: str = None
 
     learning_track_id: int | None = None
 

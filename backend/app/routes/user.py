@@ -5,8 +5,6 @@ from app.db.dependencies import get_db
 from app.schemas.user import UserCreate
 from app.crud.user import (
     create_user,
-    get_users,
-    get_user
 )
 from fastapi import HTTPException
 
@@ -41,7 +39,7 @@ def read_users(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    return get_users(db)
+    return [current_user]
 
 @router.get(
     "/users/{user_id}",
@@ -52,7 +50,9 @@ def read_user(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    return get_user(db, user_id)
+    if user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="User not found")
+    return current_user
 
 @router.post(
     "/register",

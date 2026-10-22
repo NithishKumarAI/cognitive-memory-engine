@@ -21,5 +21,4 @@ Base = declarative_base()
 
 def test_connection():
     with engine.connect() as connection:
-        result = connection.execute(text("SELECT 1"))
-        print(result.scalar())
+        connection.execute(text("SELECT 1")).scalar_one()

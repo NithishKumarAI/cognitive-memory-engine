@@ -1,4 +1,3 @@
-from sentence_transformers import SentenceTransformer
 
 
 MODEL_NAME = "BAAI/bge-base-en-v1.5"
@@ -10,6 +9,8 @@ def get_embedding_model():
     global _embedding_model
 
     if _embedding_model is None:
+        from sentence_transformers import SentenceTransformer
+
         _embedding_model = SentenceTransformer(
             MODEL_NAME
         )
