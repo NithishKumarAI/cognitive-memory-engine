@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
+from app.services.llm_service import ProviderUnavailable
 from sqlalchemy.orm import Session
 
 from app.db.dependencies import get_db
@@ -33,11 +34,15 @@ def ask_question(
     )
 ):
 
-    result = rag_service.generate_answer(
-        db=db,
-        user_id=current_user.id,
-        question=request.question,
-        top_k=request.top_k
-    )
+    try:
+        result = rag_service.generate_answer(
+            db=db,
+            user_id=current_user.id,
+            question=request.question,
+            top_k=request.top_k
+        )
+
+    except ProviderUnavailable:
+        raise HTTPException(status_code=503, detail="AI service unavailable; please retry") from None
 
     return result

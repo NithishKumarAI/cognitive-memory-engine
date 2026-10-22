@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { AxiosError } from "axios";
 import { BookOpenCheck, Brain, GraduationCap, Loader2, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -59,6 +60,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <Link href="/dashboard/capture" className="inline-block rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">Capture Learning</Link>
       <PageHeader
         description="Your learning activity, memories, and recommendations at a glance."
         title="Dashboard"

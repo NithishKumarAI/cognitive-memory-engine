@@ -23,3 +23,6 @@ FRONTEND_ORIGINS = [
     ).split(",")
     if origin.strip()
 ]
+
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+GEMINI_TIMEOUT_MS = int(os.getenv("GEMINI_TIMEOUT_MS", "30000"))

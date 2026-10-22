@@ -16,7 +16,9 @@ def test_real_ids_and_empty_results(monkeypatch, empty):
     monkeypatch.setattr(module.llm_service, "generate_response", llm)
     conversation = Mock()
     monkeypatch.setattr(module, "create_conversation", conversation)
-    result = module.rag_service.generate_answer(object(), 7, "Question")
+    db = Mock()
+    result = module.rag_service.generate_answer(db, 7, "Question")
+    db.rollback.assert_called_once()
     assert retrieval.call_args.kwargs["user_id"] == 7
     conversation.assert_called_once()
     if empty:

@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, Text, ForeignKey, DateTime
 from sqlalchemy.sql import func
 
-from app.db.database import Base
+from app.db.base import Base
 
 
 class Conversation(Base):

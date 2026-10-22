@@ -26,6 +26,16 @@ def validated_embedding(text: str) -> list[float]:
     return embedding
 
 
+def stage_memory(db: Session, memory: MemoryCreate, user_id: int, embedding: list[float]):
+    """Caller supplies a validated embedding and owns flush/commit/rollback."""
+    db_memory = Memory(**memory.model_dump(), user_id=user_id)
+    db.add(db_memory)
+    db.flush()
+    create_memory_embedding(db=db, memory_id=db_memory.id, model_name=MODEL_NAME,
+                            embedding=embedding, commit=False)
+    return db_memory
+
+
 def create_memory(
     db: Session,
     memory: MemoryCreate,
@@ -33,13 +43,7 @@ def create_memory(
 ):
     try:
         embedding = validated_embedding(f"{memory.title}\n\n{memory.content}")
-        db_memory = Memory(**memory.model_dump(), user_id=user_id)
-        db.add(db_memory)
-        db.flush()
-        create_memory_embedding(
-            db=db, memory_id=db_memory.id, model_name=MODEL_NAME,
-            embedding=embedding, commit=False,
-        )
+        db_memory = stage_memory(db, memory, user_id, embedding)
         db.flush()
         db.commit()
     except Exception:

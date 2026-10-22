@@ -7,6 +7,10 @@ from unittest.mock import Mock
 os.environ["DATABASE_URL"] = "sqlite://"
 os.environ["SECRET_KEY"] = "phase1-test-signing-key-only"
 os.environ["GEMINI_API_KEY"] = "test-only"
+os.environ["GOOGLE_API_KEY"] = "test-only"
+os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "false"
+os.environ["GEMINI_MODEL"] = "gemini-2.5-flash"
+os.environ["GEMINI_TIMEOUT_MS"] = "30000"
 os.environ["PYTHON_DOTENV_DISABLED"] = "1"
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -20,6 +24,7 @@ from sqlalchemy.pool import StaticPool
 import app.services.embedding_service as embeddings
 embeddings.generate_embedding = Mock(side_effect=AssertionError("Embedding must be mocked"))
 import app.services.llm_service as llm
+llm.llm_service.generate = Mock(side_effect=AssertionError("AI must be mocked"))
 llm.llm_service.generate_response = Mock(side_effect=AssertionError("LLM must be mocked"))
 from app.db.database import Base
 from app.db.dependencies import get_db

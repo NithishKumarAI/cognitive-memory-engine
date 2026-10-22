@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine, text
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import sessionmaker
+from app.db.base import Base
 from dotenv import load_dotenv
 
 import os
@@ -16,7 +17,6 @@ SessionLocal = sessionmaker(
     bind=engine
 )
 
-Base = declarative_base()
 
 
 def test_connection():

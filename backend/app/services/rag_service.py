@@ -66,16 +66,6 @@ USER QUESTION:
 {question}
 """
 
-        answer = (
-            llm_service.generate_response(prompt)
-            if memories else "The information is not available in memory."
-        )
-        create_conversation(
-            db=db,
-            user_id=user_id,
-            message=question,
-            response=answer
-        )
         sources = []
 
         for memory, distance in retrieval_results:
@@ -87,6 +77,19 @@ USER QUESTION:
                     "distance": float(distance)
                 }
             )
+
+        db.rollback()  # Release retrieval transaction before the external LLM call.
+
+        answer = (
+            llm_service.generate_response(prompt)
+            if memories else "The information is not available in memory."
+        )
+        create_conversation(
+            db=db,
+            user_id=user_id,
+            message=question,
+            response=answer
+        )
 
         return {
             "answer": answer,

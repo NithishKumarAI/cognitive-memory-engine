@@ -1,21 +1,30 @@
-import google.generativeai as genai
+from google import genai
+from google.genai import types
+from app.core.config import GEMINI_API_KEY, GEMINI_MODEL, GEMINI_TIMEOUT_MS
 
-from app.core.config import GEMINI_API_KEY
 
-
-genai.configure(api_key=GEMINI_API_KEY)
+class ProviderUnavailable(Exception):
+    pass
 
 
 class LLMService:
-    def __init__(self):
-        self.model = genai.GenerativeModel(
-            "gemini-2.5-flash"
-        )
+    def generate(self, contents, config=None):
+        try:
+            if not GEMINI_API_KEY:
+                raise ProviderUnavailable("AI service unavailable; please retry")
+            with genai.Client(api_key=GEMINI_API_KEY, vertexai=False,
+                              http_options=types.HttpOptions(timeout=GEMINI_TIMEOUT_MS,
+                                  retry_options=types.HttpRetryOptions(attempts=1))) as client:
+                response = client.models.generate_content(model=GEMINI_MODEL,
+                    contents=contents, config=config)
+            if not response.text:
+                raise ValueError("Empty provider response")
+            return response.text.strip()
+        except Exception:
+            raise ProviderUnavailable("AI service unavailable; please retry") from None
 
     def generate_response(self, prompt: str) -> str:
-        response = self.model.generate_content(prompt)
-
-        return response.text.strip()
+        return self.generate(prompt)
 
 
 llm_service = LLMService()

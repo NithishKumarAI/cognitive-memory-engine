@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Text, ForeignKey
 from sqlalchemy.orm import relationship
 
-from app.db.database import Base
+from app.db.base import Base
 
 
 class Memory(Base):

@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 
 const sidebarItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/dashboard/capture", icon: BookOpenCheck, label: "Capture Learning" },
   { href: "/dashboard/learning-tracks", icon: GraduationCap, label: "Learning Tracks" },
   { href: "/dashboard/study-logs", icon: BookOpenCheck, label: "Study Logs" },
   { href: "/dashboard/memories", icon: Brain, label: "Memories" },

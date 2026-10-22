@@ -1,0 +1,5 @@
+export type ObservationType = "learned" | "understood_self_report" | "difficulty" | "open_question" | "intended_next_step";
+export type Observation = { observation_type: ObservationType; topic: string; content: string; evidence: string };
+export type Interpretation = { subject: string | null; topics: string[]; observations: Observation[]; duration_minutes: number | null; duration_evidence: string | null; ambiguity: string | null };
+export type Capture = { id: number; original_text: string; source_type: "text" | "voice"; proposed_interpretation: Interpretation | null; confirmed_interpretation: Interpretation | null; status: "pending" | "failed" | "confirmed" | "discarded"; version: number; study_log_id: number | null; learning_track_id: number | null; matching_track_ids: number[]; message: string | null; observations: (Observation & { id: number; memory_id: number | null; provenance: string })[] };
+export type Confirmation = { expected_version: number; interpretation: Interpretation; learning_track_id: number | null; create_memories: boolean };
