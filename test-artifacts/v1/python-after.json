@@ -1,0 +1,95 @@
+{
+  "date": "2026-10-22",
+  "command": "python -m pip_audit --no-deps --disable-pip -r backend/requirements.txt -f json",
+  "affected_packages": 4,
+  "raw_entries": 10,
+  "distinct_ids": 6,
+  "findings": [
+    {
+      "name": "cryptography",
+      "version": "48.0.1",
+      "advisories": [
+        {
+          "id": "PYSEC-2026-3554",
+          "aliases": [
+            "CVE-2026-69248",
+            "GHSA-m2h6-j472-rp4c"
+          ],
+          "fix_versions": [
+            "49.0.0"
+          ]
+        },
+        {
+          "id": "PYSEC-2026-3552",
+          "aliases": [
+            "CVE-2026-69247",
+            "GHSA-g6cj-pr64-35w5"
+          ],
+          "fix_versions": [
+            "50.0.0"
+          ]
+        },
+        {
+          "id": "PYSEC-2026-3553",
+          "aliases": [
+            "GHSA-jwv3-5hgf-82ww",
+            "CVE-2026-69249"
+          ],
+          "fix_versions": [
+            "49.0.0"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "sentence-transformers",
+      "version": "5.5.1",
+      "advisories": [
+        {
+          "id": "PYSEC-2026-4164",
+          "aliases": [
+            "GHSA-jhr6-gm9c-rqjv",
+            "CVE-2026-68770"
+          ],
+          "fix_versions": [
+            "5.6.0"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "setuptools",
+      "version": "81.0.0",
+      "advisories": [
+        {
+          "id": "PYSEC-2026-3447",
+          "aliases": [
+            "BIT-setuptools-2026-59890",
+            "GHSA-h35f-9h28-mq5c",
+            "CVE-2026-59890"
+          ],
+          "fix_versions": [
+            "83.0.0"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "torch",
+      "version": "2.12.0",
+      "advisories": [
+        {
+          "id": "PYSEC-2025-194",
+          "aliases": [
+            "GHSA-rrmf-rvhw-rf47",
+            "BIT-pytorch-2025-3000",
+            "CVE-2025-3000"
+          ],
+          "fix_versions": [
+            "2.13.0"
+          ]
+        }
+      ]
+    }
+  ]
+}

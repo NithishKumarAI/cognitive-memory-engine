@@ -1,0 +1,15 @@
+{
+  "backend_entrypoint": "python -m app.runtime",
+  "PORT": 8117,
+  "listen_address": "0.0.0.0",
+  "health": {
+    "status": "healthy",
+    "database": "connected"
+  },
+  "root_status": 200,
+  "database": "new disposable PostgreSQL 18 loopback cluster only",
+  "AI_ENABLED": false,
+  "REGISTRATION_ENABLED": false,
+  "docker": "unverified: dockerDesktopLinuxEngine named pipe unavailable",
+  "notes": "Initial restricted-shell HTTP probe was blocked by sandbox socket permissions; authorized local probe passed. No production or provider connection."
+}

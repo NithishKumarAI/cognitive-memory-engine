@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AxiosError } from "axios";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -19,6 +19,14 @@ const kinds: { value: ObservationType; label: string }[] = [{ value: "learned", 
 const selectClass = "w-full rounded-md border border-input bg-background px-3 py-2 text-sm";
 
 export function CaptureInterface() {
+  const voiceSection = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("mode") === "voice" && !params.has("capture")) {
+      voiceSection.current?.focus();
+      voiceSection.current?.scrollIntoView({ block: "center" });
+    }
+  }, []);
   const [text, setText] = useState(""); const [source, setSource] = useState<"text" | "voice">("text");
   const [capture, setCapture] = useState<Capture | null>(null); const [proposal, setProposal] = useState<Interpretation>(empty);
   const [tracks, setTracks] = useState<LearningTrack[]>([]); const [recent, setRecent] = useState<Capture[]>([]);
@@ -61,7 +69,7 @@ export function CaptureInterface() {
     <Card className="space-y-4 p-4 sm:p-6">
       <Label htmlFor="recent-capture">Recent captures</Label><select id="recent-capture" className={selectClass} value={capture?.id ?? ""} disabled={busy} onChange={event => { if (event.target.value) void perform(() => getCapture(Number(event.target.value))); }}><option value="">Select a saved capture</option>{recent.map(item => <option key={item.id} value={item.id}>Capture #{item.id} · {item.status}</option>)}</select>
       {!recent.length ? <p className="text-sm text-muted-foreground">No captures yet. Start with a learning update below.</p> : null}
-      {!capture ? <VoiceInput disabled={busy} onTranscript={transcript => { setText(transcript); setSource("voice"); }} /> : null}
+      {!capture ? <div ref={voiceSection} tabIndex={-1} role="region" aria-label="Voice capture" className="rounded-xl focus:ring-2 focus:ring-primary focus:ring-offset-4 focus:ring-offset-card"><VoiceInput disabled={busy} onTranscript={transcript => { setText(transcript); setSource("voice"); }} /></div> : null}
       <Label htmlFor="learning-text">{capture ? "Original input (preserved)" : "Learning update / editable transcription"}</Label>
       <Textarea id="learning-text" rows={8} maxLength={20000} value={text} readOnly={!!capture} disabled={busy} onChange={event => setText(event.target.value)} placeholder="What did you study? What was confusing? What would you like to try next?" />
       {!capture ? <p className="text-right text-xs text-muted-foreground">{text.length.toLocaleString()} / 20,000 characters</p> : null}

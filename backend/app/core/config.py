@@ -26,3 +26,7 @@ FRONTEND_ORIGINS = [
 
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 GEMINI_TIMEOUT_MS = int(os.getenv("GEMINI_TIMEOUT_MS", "30000"))
+
+# Operational kill switches, not distributed quotas. Defaults preserve existing deployments.
+REGISTRATION_ENABLED = os.getenv("REGISTRATION_ENABLED", "true").lower() == "true"
+AI_ENABLED = os.getenv("AI_ENABLED", "true").lower() == "true"

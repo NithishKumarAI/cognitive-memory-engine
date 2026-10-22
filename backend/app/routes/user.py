@@ -19,6 +19,7 @@ from app.crud.user import authenticate_user
 
 from app.schemas.user import Token
 from app.core.auth import create_access_token
+from app.core.config import REGISTRATION_ENABLED
 
 from app.core.auth import get_current_user
 from app.models.user import User
@@ -62,6 +63,9 @@ def register_user(
     user: UserCreate,
     db: Session = Depends(get_db)
 ):
+    if not REGISTRATION_ENABLED:
+        raise HTTPException(403, "Registration is currently closed")
+
     existing_email = get_user_by_email(
         db,
         user.email

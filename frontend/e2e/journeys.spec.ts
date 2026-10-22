@@ -2,6 +2,7 @@ import { test, expect, Page, APIRequestContext } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { mkdirSync } from "node:fs";
 const api = "http://127.0.0.1:8100";
+const artifacts = process.env.E2E_ARTIFACT_DIR ?? "../test-artifacts/phase4";
 const note = "I studied Python decorators. Closures are confusing. Next I will practice.";
 function account() { const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`; return { username: "Avery", email: `learner-${suffix}@example.com`, password: "synthetic-password-only" }; }
 async function signIn(page: Page, request: APIRequestContext) {
@@ -49,7 +50,7 @@ test("Search, safe redirects, session expiry and historical chat", async ({ page
 });
 test("Light/dark responsive visual and accessibility verification", async ({ page, request }) => {
  test.setTimeout(300000);
- await signIn(page, request); await capture(page); mkdirSync("../test-artifacts/phase4/screenshots", { recursive: true });
+ await signIn(page, request); await capture(page); mkdirSync(`${artifacts}/screenshots`, { recursive: true });
  const token = await page.evaluate(() => localStorage.getItem("cme_access_token")); const headers = { Authorization: `Bearer ${token}` };
  const pathResponse = await request.post(`${api}/learning-tracks`, { headers, data: { name: "Python foundations", description: "Explore functions, decorators and closures" } }); expect(pathResponse.ok()).toBeTruthy(); const path = await pathResponse.json();
  expect((await request.post(`${api}/study-logs/`, { headers, data: { topic: "Decorators", duration_minutes: 25, notes: "Synthetic practice session", learning_track_id: path.id } })).ok()).toBeTruthy();
@@ -62,11 +63,22 @@ test("Light/dark responsive visual and accessibility verification", async ({ pag
     await page.goto(`/dashboard${route}`); await page.getByRole("combobox", { name: "Appearance", exact: true }).selectOption(theme); await expect(page.getByRole("main")).toBeVisible(); await page.waitForTimeout(350);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `${route} ${theme} ${width} overflow`).toBeTruthy();
     if (width === 390 || width === 1440) { const scan = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze(); if (scan.violations.length) violations.push({ route, theme, width, issues: scan.violations.map(item => ({ id: item.id, targets: item.nodes.map(node => node.target) })) }); }
-    if (!route || width === 1440) await page.screenshot({ path: `../test-artifacts/phase4/screenshots/${route.slice(1) || "home"}-${theme}-${width}.png`, fullPage: true });
+    if (!route || width === 1440) await page.screenshot({ path: `${artifacts}/screenshots/${route.slice(1) || "home"}-${theme}-${width}.png`, fullPage: true });
    }
   }
  }
  expect(violations).toEqual([]);
  await page.reload(); await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
  await page.emulateMedia({ colorScheme: "light" }); await expect(page.locator("html")).toHaveAttribute("data-theme", "dark"); await page.getByRole("combobox", { name: "Appearance", exact: true }).selectOption("system"); await expect(page.locator("html")).toHaveAttribute("data-theme", "light"); await page.emulateMedia({ colorScheme: "dark" }); await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+});
+
+
+test("V1: Home voice shortcut focuses recording without requesting permission", async ({ page, request }) => {
+ await page.addInitScript(() => { Object.defineProperty(window, "microphoneRequests", { value: 0, writable: true }); navigator.mediaDevices.getUserMedia = async () => { (window as unknown as { microphoneRequests: number }).microphoneRequests++; throw new DOMException("Synthetic denial", "NotAllowedError"); }; });
+ await signIn(page, request); await page.getByRole("link", { name: "Capture with voice", exact: true }).click();
+ await expect(page).toHaveURL(/capture\?mode=voice$/); await expect(page.getByRole("region", { name: "Voice capture", exact: true })).toBeFocused();
+ expect(await page.evaluate(() => (window as unknown as { microphoneRequests: number }).microphoneRequests)).toBe(0);
+ await page.getByRole("button", { name: "Start Recording", exact: true }).click();
+ await expect(page.getByRole("alert").filter({ hasText: "permission" })).toBeVisible(); expect(await page.evaluate(() => (window as unknown as { microphoneRequests: number }).microphoneRequests)).toBe(1);
+ await page.goto("/dashboard/capture?mode=invalid%3Cscript%3E"); await expect(page.getByRole("region", { name: "Voice capture", exact: true })).not.toBeFocused(); await page.getByLabel("Learning update / editable transcription").fill(note); await expect(page.getByRole("button", { name: "Analyze Learning", exact: true })).toBeEnabled();
 });

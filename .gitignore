@@ -221,3 +221,6 @@ __marimo__/
 frontend/test-results/
 frontend/playwright-report/
 .phase4-*
+
+# Local V1 hardening scratch output
+.v1-*

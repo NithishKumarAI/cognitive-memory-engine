@@ -1,6 +1,6 @@
 # Cognitive Memory Engine
 
-A personal learning workspace for capturing reflections, reviewing AI interpretations and resuming learning from saved evidence. Phase 4 is verified locally; no Phase 4 production deployment has been performed. Older demo deployments and screenshots are historical and do not establish the current release state.
+A personal learning workspace for capturing reflections, reviewing AI interpretations and resuming learning from saved evidence. Phases 1–4 are complete. V1 hardening is verified locally as recorded in `V1_RELEASE_HARDENING_REPORT.md`; public release remains gated. No hardening deployment has been performed. Older demo deployments and screenshots are historical and do not establish the current release state.
 
 ## What you can do
 
@@ -31,7 +31,7 @@ Copy-Item backend/.env.example backend/.env
 Copy-Item frontend/.env.example frontend/.env.local
 ```
 
-Replace placeholders locally; never commit real secrets. Backend configuration: `DATABASE_URL`, `SECRET_KEY`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `GEMINI_TIMEOUT_MS`, `ACCESS_TOKEN_EXPIRE_MINUTES`, `FRONTEND_ORIGINS`. The public `NEXT_PUBLIC_API_URL` is compiled into the frontend at build time. An embedding model download may be required on first real use; provision network access/model caching deliberately.
+Replace placeholders locally; never commit real secrets. Backend configuration: `DATABASE_URL`, `SECRET_KEY`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `GEMINI_TIMEOUT_MS`, `ACCESS_TOKEN_EXPIRE_MINUTES`, `FRONTEND_ORIGINS`, `AI_ENABLED` and `REGISTRATION_ENABLED`. The public `NEXT_PUBLIC_API_URL` is compiled into the frontend at build time. An embedding model download may be required on first real use; provision network access/model caching deliberately.
 
 After reviewing migrations and confirming the target is your disposable development database:
 
@@ -41,7 +41,7 @@ Set-Location backend
 ..\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
 ```
 
-In another terminal, `cd frontend`, `npm ci`, `npm run dev`. Open `http://localhost:3000`; database-aware health is `http://127.0.0.1:8000/health`. For a production frontend build locally use `npm run build` then `npm start`. A browser-reachable HTTPS backend URL is required for a hosted frontend.
+In another terminal, `cd frontend`, `npm ci`, `npm run dev`. Open `http://localhost:3000`; database-aware health is `http://127.0.0.1:8000/health`. For a production frontend build locally, set `ALLOW_LOCAL_API_ORIGIN=1` only when explicitly using a loopback test API, then use `npm run build` and `npm start`. `PORT` controls the production server (default 3000); the backend container defaults to 8000. Release builds require an explicit HTTPS `NEXT_PUBLIC_API_URL` and reject localhost without the local-test opt-in. A browser-reachable HTTPS backend URL is required for a hosted frontend.
 
 ## Isolated verification
 
@@ -66,10 +66,10 @@ npm run build
 npm run test:e2e
 ```
 
-See [PHASE4_FINAL_PRODUCT_REPORT.md](PHASE4_FINAL_PRODUCT_REPORT.md) for actual results, screenshot evidence, remaining advisories and manual Windows checks. See [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) before any production action. CI definitions add verification only; they do not deploy.
+See [V1_RELEASE_HARDENING_REPORT.md](V1_RELEASE_HARDENING_REPORT.md) for current local results and dependency dispositions, [DEPLOYMENT_PLAN.md](DEPLOYMENT_PLAN.md) for the unexecuted production plan, [LIVE_ACCEPTANCE_GUIDE.md](LIVE_ACCEPTANCE_GUIDE.md) for required human/provider/hardware checks, and [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) for release gates. The Phase 4 report remains historical evidence. Baseline GitHub Actions run [39801260334](https://github.com/NithishKumarAI/cognitive-memory-engine/actions/runs/39801260334) has verified successful backend/frontend jobs; these uncommitted hardening edits have not run on GitHub. CI definitions verify only; they do not deploy. The June 2026 `v1.0.0` GitHub release must not be represented as containing Phase 4 or these changes.
 
 ## Privacy and limitations
 
 Reflections, transcripts and retrieved context can be sent to Gemini during relevant operations. Voice processing requires consent; raw audio is not a saved learning record. Confirmed text, observations, optional memories and conversations persist in PostgreSQL. Configure provider retention, database backups, deletion policy and redacted monitoring for your environment. Do not put personal reflections, tokens, audio or provider responses into logs.
 
-JWTs remain in localStorage: injected script could read them. Logout clears local credentials but does not revoke an issued token server-side. Owner checks and no-store responses protect API access; they do not replace HTTPS or a reviewed session/CSP design. Search is bounded literal matching, not a full-text engine. Continuity still scans narrow owner metadata, so it is not constant-memory at unlimited history sizes. Semantic relevance thresholds need calibration against a real authorized corpus. The application does not implement distributed user quotas; gateway limits and Gemini budget controls are release requirements. Dependency advisories, real provider/microphone checks and Docker/cloud verification are recorded explicitly in the report.
+JWTs remain in localStorage: injected script could read them. Logout clears local credentials but does not revoke an issued token server-side. Owner checks and no-store responses protect API access; they do not replace HTTPS or a reviewed session/CSP design. Search is bounded literal matching, not a full-text engine. Continuity still scans narrow owner metadata, so it is not constant-memory at unlimited history sizes. Semantic relevance thresholds need calibration against a real authorized corpus. `AI_ENABLED=false` blocks Gemini provider-client construction and `REGISTRATION_ENABLED=false` closes new account creation after the configured revision is running. Defaults remain true for compatibility; configure both false before an unverified release. These switches do not disable local embeddings/model downloads, rate-limit existing users, revoke tokens or cancel in-flight calls. The existing `UsageLimit` table is not an enforced quota: there is no reset/increment path. Gateway/distributed limits and provider cost controls remain release requirements. Dependency advisories, real provider/microphone checks and Docker/cloud verification are recorded explicitly in the report.

@@ -66,22 +66,25 @@ jobs:
           cache-dependency-path: backend/requirements-test.txt
       - run: python -m pip install -r ../backend/requirements-test.txt
       - run: npm ci
+      - run: npm run test:release
       - run: npm run lint
       - run: npm run build
         env:
           NEXT_PUBLIC_API_URL: http://127.0.0.1:8100
+          ALLOW_LOCAL_API_ORIGIN: '1'
           NEXT_TELEMETRY_DISABLED: '1'
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
         env:
           E2E_PYTHON: python
           E2E_PRODUCTION: '1'
+          E2E_ARTIFACT_DIR: ../test-artifacts/v1
           PHASE4_E2E_DATABASE_URL: postgresql+psycopg://phase1:phase1-test-only@127.0.0.1:5432/cme_phase1_test
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: phase4-synthetic-browser-evidence
+          name: v1-synthetic-browser-evidence
           path: |
-            test-artifacts/phase4/screenshots
+            test-artifacts/v1/screenshots
             frontend/playwright-report
           retention-days: 7

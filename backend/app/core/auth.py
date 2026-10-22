@@ -5,7 +5,8 @@ from app.core.config import (
     ALGORITHM,
     ACCESS_TOKEN_EXPIRE_MINUTES,
 )
-from jose import JWTError, jwt
+import jwt
+from jwt import InvalidTokenError
 from fastapi.security import OAuth2PasswordBearer
 
 from fastapi import Depends, HTTPException
@@ -45,7 +46,8 @@ def verify_access_token(
         payload = jwt.decode(
             token,
             SECRET_KEY,
-            algorithms=[ALGORITHM]
+            algorithms=[ALGORITHM],
+            options={"require": ["exp", "sub"]},
         )
 
         email = payload.get("sub")
@@ -55,7 +57,7 @@ def verify_access_token(
 
         return email
 
-    except JWTError:
+    except InvalidTokenError:
         return None
 
 def get_current_user(

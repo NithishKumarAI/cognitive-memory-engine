@@ -5,13 +5,15 @@ from unittest.mock import Mock
 
 # Set before any app imports; never read a developer database or secrets.
 os.environ["DATABASE_URL"] = "sqlite://"
-os.environ["SECRET_KEY"] = "phase1-test-signing-key-only"
+os.environ["SECRET_KEY"] = "phase1-test-signing-key-only-at-least-32-bytes"
 os.environ["GEMINI_API_KEY"] = "test-only"
 os.environ["GOOGLE_API_KEY"] = "test-only"
 os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "false"
 os.environ["GEMINI_MODEL"] = "gemini-2.5-flash"
 os.environ["GEMINI_TIMEOUT_MS"] = "30000"
 os.environ["PYTHON_DOTENV_DISABLED"] = "1"
+os.environ["AI_ENABLED"] = "true"
+os.environ["REGISTRATION_ENABLED"] = "true"
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import pytest

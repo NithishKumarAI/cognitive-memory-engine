@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { validateApiOrigin } from "./lib/api-origin.mjs";
 
 const nextConfig: NextConfig = {
   async headers() {
@@ -12,4 +13,7 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
 };
 
-export default nextConfig;
+export default function config(phase: string): NextConfig {
+  if (phase === "phase-production-build") validateApiOrigin(process.env);
+  return nextConfig;
+}
