@@ -82,7 +82,7 @@ export function ChatInterface() {
 
           {!hasMessages ? (
             <div className="flex h-full min-h-72 items-center justify-center text-center text-sm text-muted-foreground">
-              Ask a question about your saved memories.
+              Ask a question about your saved memories or learning progress.
             </div>
           ) : null}
 
@@ -101,11 +101,20 @@ export function ChatInterface() {
                 <p className="whitespace-pre-wrap">{message.content}</p>
                 {message.sources?.length ? (
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {message.sources.map((source) => (
-                      <Badge key={`${message.id}-${source.memory_id}`}>
-                        [Memory {source.memory_id}] {source.title}
-                      </Badge>
-                    ))}
+                    {message.sources.map((source, sIdx) => {
+                      if (source.observation_id) {
+                        return (
+                          <Badge key={`${message.id}-obs-${source.observation_id}-${sIdx}`}>
+                            [Observation {source.observation_id}] {source.title}
+                          </Badge>
+                        );
+                      }
+                      return (
+                        <Badge key={`${message.id}-mem-${source.memory_id}-${sIdx}`}>
+                          [Memory {source.memory_id}] {source.title}
+                        </Badge>
+                      );
+                    })}
                   </div>
                 ) : null}
               </div>
@@ -120,7 +129,7 @@ export function ChatInterface() {
               <Textarea
                 className="min-h-12 resize-none"
                 id="question"
-                placeholder="Ask the engine what you know about..."
+                placeholder="Ask what you studied, struggled with, or planned next..."
                 {...register("question", { required: true })}
               />
               <Button disabled={isSubmitting} size="icon" type="submit">
@@ -138,28 +147,58 @@ export function ChatInterface() {
 
       <Card className="p-4">
         <h2 className="text-sm font-semibold text-foreground">Sources</h2>
-        <p className="mt-1 text-xs text-muted-foreground">Memories retrieved for the latest answer.</p>
+        <p className="mt-1 text-xs text-muted-foreground">Evidence retrieved for the latest answer.</p>
 
         <div className="mt-4 space-y-3">
           {lastSources.length === 0 ? (
             <p className="text-sm text-muted-foreground">No sources yet.</p>
           ) : null}
 
-          {lastSources.map((source) => (
-            <Link
-              className="block rounded-md border border-border p-3 transition-colors hover:bg-muted"
-              href={`/dashboard/memories/${source.memory_id}`}
-              key={source.memory_id}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <p className="text-sm font-medium text-foreground">[Memory {source.memory_id}] {source.title}</p>
-                <Badge>{source.category}</Badge>
-              </div>
-              <p className="mt-2 text-xs text-muted-foreground">
-                Distance {source.distance.toFixed(4)}
-              </p>
-            </Link>
-          ))}
+          {lastSources.map((source, sIdx) => {
+            if (source.observation_id) {
+              return (
+                <Link
+                  className="block rounded-md border border-border p-3 transition-colors hover:bg-muted"
+                  href="/dashboard/capture"
+                  key={`source-obs-${source.observation_id}-${sIdx}`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-sm font-medium text-foreground">
+                      [Observation {source.observation_id}] {source.title}
+                    </p>
+                    <Badge className="bg-transparent">{source.category}</Badge>
+                  </div>
+                  {source.evidence ? (
+                    <p className="mt-2 text-xs text-muted-foreground italic line-clamp-2">
+                      &quot;{source.evidence}&quot;
+                    </p>
+                  ) : null}
+                  {source.capture_id ? (
+                    <p className="mt-1 text-xs text-primary font-medium">
+                      From Capture #{source.capture_id}
+                    </p>
+                  ) : null}
+                </Link>
+              );
+            }
+            return (
+              <Link
+                className="block rounded-md border border-border p-3 transition-colors hover:bg-muted"
+                href={`/dashboard/memories/${source.memory_id}`}
+                key={`source-mem-${source.memory_id}-${sIdx}`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <p className="text-sm font-medium text-foreground">
+                    [Memory {source.memory_id}] {source.title}
+                  </p>
+                  <Badge>{source.category}</Badge>
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Distance {source.distance.toFixed(4)}
+                </p>
+              </Link>
+            );
+          })}
         </div>
       </Card>
     </div>

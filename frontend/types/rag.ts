@@ -1,8 +1,12 @@
 export type RAGSource = {
-  memory_id: number;
+  source_type?: string;
+  memory_id?: number | null;
+  observation_id?: number | null;
+  capture_id?: number | null;
   title: string;
   category: string;
   distance: number;
+  evidence?: string | null;
 };
 
 export type RAGRequest = {

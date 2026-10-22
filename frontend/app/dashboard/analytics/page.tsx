@@ -1,7 +1,7 @@
 "use client";
 
 import { AxiosError } from "axios";
-import { Activity, Clock, Flame, Loader2, NotebookText } from "lucide-react";
+import { Activity, AlertTriangle, BookMarked, CheckCircle2, Clock, Flame, HelpCircle, Loader2, NotebookText } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
   Bar,
@@ -22,19 +22,21 @@ import { ChartCard } from "@/components/dashboard/chart-card";
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   getAnalyticsOverview,
   getConsistency,
   getDailyActivity,
   getTopicDistribution,
 } from "@/services/analytics";
+import { getLearningOverview } from "@/services/learning";
 import type {
   AnalyticsOverview,
   Consistency,
   DailyActivityItem,
   TopicDistributionItem,
 } from "@/types/analytics";
+import type { LearningOverview } from "@/types/continuity";
 
 const chartColors = ["#0f766e", "#2563eb", "#f59e0b", "#dc2626", "#7c3aed", "#059669"];
 
@@ -44,6 +46,7 @@ export default function AnalyticsPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [overview, setOverview] = useState<AnalyticsOverview | null>(null);
+  const [learningOverview, setLearningOverview] = useState<LearningOverview | null>(null);
   const [topicDistribution, setTopicDistribution] = useState<TopicDistributionItem[]>([]);
 
   useEffect(() => {
@@ -52,17 +55,20 @@ export default function AnalyticsPage() {
       setError(null);
 
       try {
-        const [overviewData, topicData, activityData, consistencyData] = await Promise.all([
+        const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+        const [overviewData, topicData, activityData, consistencyData, learningData] = await Promise.all([
           getAnalyticsOverview(),
           getTopicDistribution(),
           getDailyActivity(),
           getConsistency(),
+          getLearningOverview(userTz),
         ]);
 
         setOverview(overviewData);
         setTopicDistribution(topicData);
         setDailyActivity(activityData);
         setConsistency(consistencyData);
+        setLearningOverview(learningData);
       } catch (caughtError) {
         setError(getErrorMessage(caughtError, "Unable to load analytics."));
       } finally {
@@ -94,7 +100,7 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        description="Review study volume, topic focus, daily activity, and consistency."
+        description="Review study volume, topic focus, daily activity, and confirmed learning intelligence."
         title="Analytics"
       />
 
@@ -110,6 +116,7 @@ export default function AnalyticsPage() {
         </Card>
       ) : (
         <>
+          {/* Study Volume & Streak */}
           <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard
               helper={`${overview?.total_topics ?? 0} topics covered`}
@@ -120,11 +127,11 @@ export default function AnalyticsPage() {
             <MetricCard
               helper="Across all logged sessions"
               icon={Clock}
-              label="Total Hours"
+              label="Logged Study Hours"
               value={(overview?.total_hours ?? 0).toFixed(1)}
             />
             <MetricCard
-              helper="Consecutive study days"
+              helper="Consecutive study days (timezone-aware)"
               icon={Flame}
               label="Current Streak"
               value={`${overview?.current_streak ?? 0} days`}
@@ -137,6 +144,64 @@ export default function AnalyticsPage() {
             />
           </section>
 
+          {/* Learning Intelligence & Continuity Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Learning Intelligence & Continuity</CardTitle>
+              <CardDescription>
+                Confirmed observations, self-reported understanding, and learning items needing attention.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="rounded-lg border border-border p-3.5 space-y-1">
+                  <div className="flex items-center gap-2 text-primary font-medium text-xs">
+                    <BookMarked className="size-4" />
+                    <span>Confirmed Captures</span>
+                  </div>
+                  <p className="text-2xl font-bold">{learningOverview?.confirmed_captures_count ?? 0}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {learningOverview?.distinct_topics_count ?? 0} distinct topics recorded
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-border p-3.5 space-y-1">
+                  <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-medium text-xs">
+                    <CheckCircle2 className="size-4" />
+                    <span>Understood Self-Reports</span>
+                  </div>
+                  <p className="text-2xl font-bold">{learningOverview?.understood_count ?? 0}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Self-reported understanding (not assessed mastery)
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-border p-3.5 space-y-1">
+                  <div className="flex items-center gap-2 text-destructive font-medium text-xs">
+                    <AlertTriangle className="size-4" />
+                    <span>Reported Difficulties</span>
+                  </div>
+                  <p className="text-2xl font-bold">{learningOverview?.unresolved_difficulties_count ?? 0}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {learningOverview?.difficulties_count ?? 0} total recorded
+                  </p>
+                </div>
+
+                <div className="rounded-lg border border-border p-3.5 space-y-1">
+                  <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-medium text-xs">
+                    <HelpCircle className="size-4" />
+                    <span>Open Questions</span>
+                  </div>
+                  <p className="text-2xl font-bold">{learningOverview?.unresolved_questions_count ?? 0}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {learningOverview?.pending_next_actions_count ?? 0} pending next steps
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Study History and Consistency Charts */}
           <section className="grid gap-4 xl:grid-cols-2">
             <ChartCard
               description="Total hours by topic, weighted by session count."

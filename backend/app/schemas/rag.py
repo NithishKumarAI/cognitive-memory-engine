@@ -1,9 +1,8 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class RAGRequest(BaseModel):
     question: str
-
     top_k: int = Field(
         default=5,
         ge=1,
@@ -12,13 +11,17 @@ class RAGRequest(BaseModel):
 
 
 class RAGSourceMemory(BaseModel):
-    memory_id: int
+    model_config = ConfigDict(from_attributes=True)
+    memory_id: int | None = None
+    observation_id: int | None = None
+    capture_id: int | None = None
+    source_type: str = "memory"
     title: str
     category: str
-    distance: float
+    distance: float = 0.0
+    evidence: str | None = None
 
 
 class RAGResponse(BaseModel):
     answer: str
-
     sources: list[RAGSourceMemory]

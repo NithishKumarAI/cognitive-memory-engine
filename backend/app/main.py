@@ -13,6 +13,7 @@ from app.routes import analytics
 from app.routes.learning_track import (router as learning_track_router)
 from app.routes import recommendation
 from app.routes.capture import router as capture_router
+from app.routes.learning import router as learning_router
 
 app = FastAPI(
     title="Cognitive Memory Engine",
@@ -27,6 +28,7 @@ app.add_middleware(
 )
 
 app.include_router(capture_router)
+app.include_router(learning_router)
 app.include_router(user_router)
 app.include_router(study_log_router)
 app.include_router(memory_router)
@@ -55,5 +57,8 @@ def health_check():
     except Exception:
         return JSONResponse(
             status_code=503,
-            content={"status": "unhealthy", "database": "unavailable"},
+            content={
+                "status": "unhealthy",
+                "database": "unavailable"
+            }
         )

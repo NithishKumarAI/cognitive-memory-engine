@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends
 
@@ -28,7 +28,7 @@ def test_recommendation_route(
     return {
         "message": "Recommendation router working",
         "user_id": current_user.id,
-        "timestamp": datetime.utcnow()
+        "timestamp": datetime.now(timezone.utc)
     }
 
 @router.get(
@@ -111,6 +111,6 @@ def get_daily_recommendations(
     )
 
     return {
-        "generated_at": datetime.utcnow(),
+        "generated_at": datetime.now(timezone.utc),
         "recommendations": recommendations
     }

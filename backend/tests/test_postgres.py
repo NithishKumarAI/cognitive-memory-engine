@@ -52,7 +52,9 @@ def postgres_db(postgres_engine):
 def migrate(engine, revision="head"):
     from alembic import command
     from alembic.config import Config
-    config = Config("alembic.ini")
+    from pathlib import Path
+    ini_path = Path(__file__).resolve().parents[1] / "alembic.ini"
+    config = Config(str(ini_path) if ini_path.exists() else "alembic.ini")
     config.set_main_option("sqlalchemy.url", engine.url.render_as_string(hide_password=False).replace("%", "%%"))
     command.upgrade(config, revision)
 
@@ -63,7 +65,7 @@ def test_empty_database_bootstrap(postgres_engine):
     assert set(Base.metadata.tables) <= set(inspect(postgres_engine).get_table_names())
 
 
-@pytest.mark.parametrize("revision", ["3d0e118a4fdf", "305e4c8b7844", "903ce59b718d"])
+@pytest.mark.parametrize("revision", ["3d0e118a4fdf", "305e4c8b7844", "903ce59b718d", "f20200000002"])
 def test_earlier_revision_upgrade_preserves_data(postgres_engine, revision):
     migrate(postgres_engine, revision)
     with postgres_engine.begin() as connection:
@@ -220,11 +222,13 @@ def test_explicit_migration_environment_url(postgres_engine, monkeypatch):
     from alembic import command
     from alembic.config import Config
     monkeypatch.setenv("ALEMBIC_DATABASE_URL", postgres_engine.url.render_as_string(hide_password=False))
-    config = Config("alembic.ini")
+    from pathlib import Path
+    ini_path = Path(__file__).resolve().parents[1] / "alembic.ini"
+    config = Config(str(ini_path) if ini_path.exists() else "alembic.ini")
     config.set_main_option("sqlalchemy.url", "")
     command.upgrade(config, "head")
     with postgres_engine.connect() as connection:
-        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "f20200000002"
+        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "f30100000001"
 
 
 def test_migration_needs_no_application_database_setting(postgres_engine):
@@ -233,7 +237,9 @@ def test_migration_needs_no_application_database_setting(postgres_engine):
     env = {key: value for key, value in os.environ.items() if key not in ("DATABASE_URL", "SECRET_KEY", "GEMINI_API_KEY")}
     env["PYTHON_DOTENV_DISABLED"] = "1"
     env["ALEMBIC_DATABASE_URL"] = postgres_engine.url.render_as_string(hide_password=False)
-    result = subprocess.run([sys.executable, "-m", "alembic", "upgrade", "head"], env=env, capture_output=True, timeout=30)
+    from pathlib import Path
+    backend_dir = Path(__file__).resolve().parents[1]
+    result = subprocess.run([sys.executable, "-m", "alembic", "upgrade", "head"], cwd=str(backend_dir), env=env, capture_output=True, timeout=30)
     assert result.returncode == 0, "Isolated Alembic bootstrap failed without app settings"
     with postgres_engine.connect() as connection:
-        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "f20200000002"
+        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "f30100000001"
