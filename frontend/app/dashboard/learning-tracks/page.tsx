@@ -1,168 +1,26 @@
 "use client";
-
-import { AxiosError } from "axios";
-import { Edit, Plus, Trash2 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
-
-import { EntityTable } from "@/components/dashboard/entity-table";
-import { FormShell } from "@/components/dashboard/form-shell";
+import { ArrowUpRight, Edit, Plus, Trash2, BookOpenCheck } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { FormShell } from "@/components/dashboard/form-shell";
 import { LearningTrackForm } from "@/components/forms/learning-track-form";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import {
-  createLearningTrack,
-  deleteLearningTrack,
-  listLearningTracks,
-  updateLearningTrack,
-} from "@/services/learningTracks";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useConfirmDialog } from "@/components/ui/confirm-dialog";
+import { createLearningTrack, deleteLearningTrack, listLearningTracks, updateLearningTrack } from "@/services/learningTracks";
+import { getCheckpoints, getTopicContinuity } from "@/services/learning";
+import { captureHref } from "@/lib/routes";
 import type { LearningTrack, LearningTrackPayload } from "@/types/learningTrack";
-
-export default function LearningTracksPage() {
-  const [error, setError] = useState<string | null>(null);
-  const [formMode, setFormMode] = useState<"create" | "edit" | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedTrack, setSelectedTrack] = useState<LearningTrack | null>(null);
-  const [tracks, setTracks] = useState<LearningTrack[]>([]);
-
-  async function loadTracks() {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      setTracks(await listLearningTracks());
-    } catch (caughtError) {
-      setError(getErrorMessage(caughtError, "Unable to load learning tracks."));
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    // Page data is loaded from the API when this protected client route mounts.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void loadTracks();
-  }, []);
-
-  async function handleSubmit(payload: LearningTrackPayload) {
-    if (formMode === "edit" && selectedTrack) {
-      await updateLearningTrack(selectedTrack.id, payload);
-    } else {
-      await createLearningTrack(payload);
-    }
-
-    closeForm();
-    await loadTracks();
-  }
-
-  async function handleDelete(track: LearningTrack) {
-    const confirmed = window.confirm(`Delete "${track.name}"?`);
-
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      await deleteLearningTrack(track.id);
-      await loadTracks();
-    } catch (caughtError) {
-      setError(getErrorMessage(caughtError, "Unable to delete learning track."));
-    }
-  }
-
-  function closeForm() {
-    setFormMode(null);
-    setSelectedTrack(null);
-  }
-
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        action={
-          <Button onClick={() => setFormMode("create")}>
-            <Plus className="size-4" aria-hidden="true" />
-            New Track
-          </Button>
-        }
-        description="Organize study work into long-lived learning goals."
-        title="Learning Tracks"
-      />
-
-      {error ? (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      ) : null}
-
-      {formMode ? (
-        <FormShell
-          description="Give this track a clear scope so logs and memories can attach to it later."
-          onCancel={closeForm}
-          title={formMode === "edit" ? "Edit learning track" : "Create learning track"}
-        >
-          <LearningTrackForm initialValue={selectedTrack} onCancel={closeForm} onSubmit={handleSubmit} />
-        </FormShell>
-      ) : null}
-
-      <EntityTable
-        columns={[
-          {
-            header: "Name",
-            key: "name",
-            render: (track) => <span className="font-medium text-foreground">{track.name}</span>,
-          },
-          {
-            header: "Description",
-            key: "description",
-            render: (track) => (
-              <span className="line-clamp-2 text-muted-foreground">
-                {track.description || "No description"}
-              </span>
-            ),
-          },
-          {
-            header: "Created",
-            key: "created",
-            render: (track) => new Date(track.created_at).toLocaleDateString(),
-          },
-          {
-            className: "w-28 text-right",
-            header: "",
-            key: "actions",
-            render: (track) => (
-              <div className="flex justify-end gap-1">
-                <Button
-                  aria-label={`Edit ${track.name}`}
-                  onClick={() => {
-                    setSelectedTrack(track);
-                    setFormMode("edit");
-                  }}
-                  size="icon"
-                  variant="ghost"
-                >
-                  <Edit className="size-4" aria-hidden="true" />
-                </Button>
-                <Button
-                  aria-label={`Delete ${track.name}`}
-                  onClick={() => void handleDelete(track)}
-                  size="icon"
-                  variant="ghost"
-                >
-                  <Trash2 className="size-4" aria-hidden="true" />
-                </Button>
-              </div>
-            ),
-          },
-        ]}
-        data={tracks}
-        emptyMessage="No learning tracks yet. Create one to start grouping your study work."
-        getRowKey={(track) => track.id}
-        isLoading={isLoading}
-      />
-    </div>
-  );
-}
-
-function getErrorMessage(error: unknown, fallback: string) {
-  return error instanceof AxiosError ? error.response?.data?.detail ?? fallback : fallback;
+import type { ResumableCheckpoint, TopicContinuity } from "@/types/continuity";
+export default function PathsPage() {
+ const [tracks, setTracks] = useState<LearningTrack[]>([]); const [points, setPoints] = useState<ResumableCheckpoint[]>([]); const [topics, setTopics] = useState<TopicContinuity[]>([]); const [mode, setMode] = useState<"create" | "edit" | null>(null); const [selected, setSelected] = useState<LearningTrack | null>(null); const [loading, setLoading] = useState(true); const [error, setError] = useState(""); const [refresh, setRefresh] = useState(0); const { confirm, dialog } = useConfirmDialog();
+ useEffect(() => { let active = true; Promise.all([listLearningTracks(), getCheckpoints(undefined, 100), getTopicContinuity(undefined, 100)]).then(([paths, checkpoints, summaries]) => { if (active) { setTracks(paths); setPoints(checkpoints); setTopics(summaries); setError(""); } }).catch(() => { if (active) setError("Unable to load your paths. Please retry."); }).finally(() => { if (active) setLoading(false); }); return () => { active = false; }; }, [refresh]);
+ async function save(payload: LearningTrackPayload) { try { if (mode === "edit" && selected) await updateLearningTrack(selected.id, payload); else await createLearningTrack(payload); setMode(null); setSelected(null); setRefresh(value => value + 1); } catch { setError("Your path could not be saved. Check the name and try again."); } }
+ async function remove(track: LearningTrack) { if (!await confirm(`Delete “${track.name}”? Your study logs, captures and memories will be preserved and unassigned.`)) return; try { await deleteLearningTrack(track.id); setRefresh(value => value + 1); } catch { setError("Unable to delete this path. Please retry."); } }
+ return <div className="space-y-6"><PageHeader title="Follow your curiosity" description="Your learning paths hold the topics, questions and small discoveries you want to return to." action={<Button onClick={() => { setSelected(null); setMode("create"); }}><Plus aria-hidden="true" />New path</Button>} />{error ? <p role="alert" className="text-destructive">{error} <button className="min-h-11 underline" onClick={() => setRefresh(value => value + 1)}>Retry</button></p> : null}{mode ? <FormShell title={mode === "edit" ? "Edit learning path" : "Create learning path"} description="Choose a name and a direction. There is no fixed curriculum to complete." onCancel={() => setMode(null)}><LearningTrackForm initialValue={selected} onCancel={() => setMode(null)} onSubmit={save} /></FormShell> : null}
+ {loading ? <Skeleton /> : !tracks.length ? <EmptyState title="Where would you like to go next?" description="Create your first learning path with the New path button. You can also capture a thought without assigning a path." href="/dashboard/capture" /> : <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{tracks.map(track => { const checkpoint = points.find(point => point.learning_track_id === track.id); const summaries = topics.filter(topic => topic.learning_track_id === track.id); return <Card id={`track-${track.id}`} key={track.id} className="flex scroll-mt-28 flex-col p-6"><div className="flex items-start justify-between gap-3"><span className="rounded-xl bg-muted p-3 text-primary"><BookOpenCheck aria-hidden="true" className="size-5" /></span><div className="flex gap-1"><Button variant="ghost" size="icon" aria-label={`Edit ${track.name}`} onClick={() => { setSelected(track); setMode("edit"); }}><Edit aria-hidden="true" /></Button><Button variant="ghost" size="icon" aria-label={`Delete ${track.name}`} onClick={() => void remove(track)}><Trash2 aria-hidden="true" /></Button></div></div><h2 className="mt-5 text-xl font-semibold">{track.name}</h2><p className="mt-2 text-sm text-muted-foreground">{track.description || "A space to explore, ask questions and keep going."}</p>{checkpoint ? <><div className="mt-5 border-t border-border pt-4"><Badge>{checkpoint.state.replaceAll("_", " ")}</Badge><p className="mt-3 text-sm font-medium">Recent topic: {checkpoint.topic}</p><p className="mt-1 text-xs text-muted-foreground">Last recorded activity {checkpoint.last_capture_at ? new Date(checkpoint.last_capture_at).toLocaleDateString() : "available"}</p></div>{checkpoint.unresolved_difficulties[0] ? <p className="mt-3 text-sm text-muted-foreground">Working through: {checkpoint.unresolved_difficulties[0].content}</p> : null}{checkpoint.pending_next_steps[0] ? <p className="mt-3 text-sm">Next: {checkpoint.pending_next_steps[0].content}</p> : null}<Link className="mt-5 inline-flex min-h-11 items-center gap-1 text-sm font-medium text-primary" href={checkpoint.last_capture_id ? captureHref(checkpoint.last_capture_id) : "/dashboard/study-logs"}>Resume checkpoint <ArrowUpRight className="size-4" aria-hidden="true" /></Link></> : <p className="mt-5 text-sm text-muted-foreground">No recent checkpoint in this view. Record a learning moment or explore your history.</p>}{summaries.length ? <details className="mt-4 text-sm"><summary className="min-h-11 cursor-pointer text-primary">Topics in this view ({summaries.length})</summary><ul className="space-y-2 text-muted-foreground">{summaries.map(topic => <li key={topic.normalized_topic}>{topic.topic} · {topic.confirmed_capture_count} confirmed updates · {topic.pending_next_steps_count} pending steps</li>)}</ul></details> : null}</Card>; })}</div>}{dialog}</div>;
 }

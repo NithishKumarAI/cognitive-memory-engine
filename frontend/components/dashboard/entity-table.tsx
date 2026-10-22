@@ -56,7 +56,7 @@ export function EntityTable<T>({
           </thead>
           <tbody className="divide-y divide-border">
             {data.map((item) => (
-              <tr className="bg-card transition-colors hover:bg-muted/40" key={getRowKey(item)}>
+              <tr id={`record-${getRowKey(item)}`} className="scroll-mt-24 bg-card transition-colors hover:bg-muted/40" key={getRowKey(item)}>
                 {columns.map((column) => (
                   <td className={cn("px-4 py-3 align-top", column.className)} key={column.key}>
                     {column.render(item)}

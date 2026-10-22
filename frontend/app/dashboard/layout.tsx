@@ -9,7 +9,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <DashboardSidebar />
         <div className="flex min-w-0 flex-1 flex-col">
           <TopNavbar />
-          <main className="flex-1 bg-muted/40 p-4 sm:p-6">{children}</main>
+          <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 p-4 pb-12 sm:p-8 lg:p-10"><div className="mx-auto w-full max-w-7xl">{children}</div></main>
         </div>
       </div>
     </AuthGuard>

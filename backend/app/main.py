@@ -14,6 +14,7 @@ from app.routes.learning_track import (router as learning_track_router)
 from app.routes import recommendation
 from app.routes.capture import router as capture_router
 from app.routes.learning import router as learning_router
+from app.routes.workspace import router as workspace_router
 
 app = FastAPI(
     title="Cognitive Memory Engine",
@@ -27,6 +28,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(workspace_router)
 app.include_router(capture_router)
 app.include_router(learning_router)
 app.include_router(user_router)
@@ -62,3 +64,12 @@ def health_check():
                 "database": "unavailable"
             }
         )
+
+
+@app.middleware("http")
+async def private_responses(request, call_next):
+    response = await call_next(request)
+    if request.headers.get("authorization") or request.url.path in ("/login", "/register", "/me"):
+        response.headers["Cache-Control"] = "no-store"
+        response.headers["Vary"] = ", ".join(filter(None, [response.headers.get("Vary"), "Authorization"]))
+    return response

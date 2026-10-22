@@ -1,65 +1,22 @@
 "use client";
-
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  BarChart3,
-  BookOpenCheck,
-  Brain,
-  GraduationCap,
-  LayoutDashboard,
-  MessageSquareText,
-  Sparkles,
-} from "lucide-react";
-
+import { BookOpenCheck, Brain, GraduationCap, House, MessageSquareText, ChartNoAxesCombined, Compass, History, NotebookPen } from "lucide-react";
+import { branding } from "@/lib/branding";
 import { cn } from "@/lib/utils";
-
-const sidebarItems = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/dashboard/capture", icon: BookOpenCheck, label: "Capture Learning" },
-  { href: "/dashboard/learning-tracks", icon: GraduationCap, label: "Learning Tracks" },
-  { href: "/dashboard/study-logs", icon: BookOpenCheck, label: "Study Logs" },
-  { href: "/dashboard/memories", icon: Brain, label: "Memories" },
-  { href: "/dashboard/chat", icon: MessageSquareText, label: "Chat" },
-  { href: "/dashboard/analytics", icon: BarChart3, label: "Analytics" },
-  { href: "/dashboard/recommendations", icon: Sparkles, label: "Recommendations" },
+const items = [
+  { href: "/dashboard", label: "Home", icon: House },
+  { href: "/dashboard/capture", label: "Capture Learning", icon: NotebookPen },
+  { href: "/dashboard/learning-tracks", label: "Learning Paths", icon: GraduationCap },
+  { href: "/dashboard/recommendations", label: "Next Actions", icon: Compass },
+  { href: "/dashboard/chat", label: "Assistant", icon: MessageSquareText },
+  { href: "/dashboard/analytics", label: "Insights", icon: ChartNoAxesCombined },
+  { href: "/dashboard/history", label: "Learning History", icon: History },
+  { href: "/dashboard/memories", label: "Memory", icon: Brain },
+  { href: "/dashboard/study-logs", label: "Study Logs", icon: BookOpenCheck },
 ];
-
-export function DashboardSidebar() {
+export function WorkspaceNavigation({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
-
-  return (
-    <aside className="hidden w-72 shrink-0 border-r border-border bg-sidebar px-4 py-5 text-sidebar-foreground lg:block">
-      <div className="mb-8 flex items-center gap-3 px-2">
-        <div className="flex size-10 items-center justify-center rounded-md bg-primary text-primary-foreground">
-          <Brain className="size-5" aria-hidden="true" />
-        </div>
-        <div>
-          <p className="text-sm font-semibold">Cognitive Memory</p>
-          <p className="text-xs text-muted-foreground">Engine</p>
-        </div>
-      </div>
-
-      <nav className="space-y-1" aria-label="Dashboard navigation">
-        {sidebarItems.map((item) => {
-          const isActive =  item.href === "/dashboard"? pathname === "/dashboard": pathname === item.href || pathname.startsWith(`${item.href}/`);
-          const Icon = item.icon;
-
-          return (
-            <Link
-              className={cn(
-                "flex h-10 items-center gap-3 rounded-md px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                isActive && "bg-sidebar-accent text-sidebar-accent-foreground",
-              )}
-              href={item.href}
-              key={item.href}
-            >
-              <Icon className="size-4" aria-hidden="true" />
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
-    </aside>
-  );
+  return <><Link onClick={onNavigate} href="/dashboard" className="mb-10 flex items-center gap-3 px-3 py-2"><span className="rounded-2xl bg-primary p-2.5 text-primary-foreground"><Brain className="size-5" aria-hidden="true" /></span><span className="text-sm font-semibold leading-snug">{branding.name}</span></Link><nav aria-label="Workspace navigation" className="space-y-1.5">{items.map((item, index) => { const active = item.href === "/dashboard" ? pathname === item.href : pathname.startsWith(item.href); const Icon = item.icon; return <div key={item.href}>{index === 6 ? <p className="mb-3 mt-8 px-4 text-[11px] font-semibold uppercase tracking-[.16em] text-muted-foreground">Your library</p> : null}<Link onClick={onNavigate} aria-current={active ? "page" : undefined} href={item.href} className={cn("flex min-h-11 items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground", active && "bg-sidebar-accent text-sidebar-accent-foreground")}><Icon className="size-[18px]" aria-hidden="true" />{item.label}{active ? <span className="ml-auto size-1.5 rounded-full bg-current" /> : null}</Link></div>; })}</nav><div className="mt-10 rounded-2xl border border-border p-4 text-xs text-muted-foreground"><p className="font-semibold text-foreground">A little learning, remembered.</p><p className="mt-1">Your notes are a place to return to, not a score to chase.</p></div></>;
 }
+export function DashboardSidebar() { return <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 overflow-y-auto border-r border-border bg-sidebar p-4 xl:w-72 lg:block"><WorkspaceNavigation /></aside>; }

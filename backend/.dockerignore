@@ -5,3 +5,9 @@ __pycache__
 .gitignore
 .env
 alembic/versions/__pycache__
+.env
+.env.*
+.venv
+__pycache__
+.pytest_cache
+tests

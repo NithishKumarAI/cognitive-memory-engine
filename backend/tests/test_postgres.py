@@ -228,7 +228,7 @@ def test_explicit_migration_environment_url(postgres_engine, monkeypatch):
     config.set_main_option("sqlalchemy.url", "")
     command.upgrade(config, "head")
     with postgres_engine.connect() as connection:
-        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "f30100000001"
+        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "f40100000001"
 
 
 def test_migration_needs_no_application_database_setting(postgres_engine):
@@ -242,4 +242,15 @@ def test_migration_needs_no_application_database_setting(postgres_engine):
     result = subprocess.run([sys.executable, "-m", "alembic", "upgrade", "head"], cwd=str(backend_dir), env=env, capture_output=True, timeout=30)
     assert result.returncode == 0, "Isolated Alembic bootstrap failed without app settings"
     with postgres_engine.connect() as connection:
-        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "f30100000001"
+        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "f40100000001"
+
+
+def test_phase3_head_action_rows_survive_forward_digest_migration(postgres_engine):
+    migrate(postgres_engine, "f30100000001")
+    with postgres_engine.begin() as connection:
+        connection.execute(text("INSERT INTO users (username,email,hashed_password) VALUES ('phase3','phase3@example.com','synthetic')"))
+        connection.execute(text("INSERT INTO learning_actions (user_id,idempotency_key,action_type,status,notes) VALUES (1,'legacy-key','recommendation','completed','Keep this feedback')"))
+    migrate(postgres_engine)
+    with postgres_engine.connect() as connection:
+        row = connection.execute(text("SELECT status,notes,request_digest FROM learning_actions")).one()
+        assert row.status == "completed" and row.notes == "Keep this feedback" and row.request_digest is None

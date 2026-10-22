@@ -17,6 +17,7 @@ class LearningAction(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     idempotency_key = Column(String(128), nullable=False)
+    request_digest = Column(String(64), nullable=True)
     action_type = Column(String(64), nullable=False)
     status = Column(String(32), nullable=False)
     observation_id = Column(Integer, ForeignKey("learning_observations.id", ondelete="SET NULL"), nullable=True, index=True)

@@ -1,210 +1,28 @@
 "use client";
-
 import Link from "next/link";
-import { AxiosError } from "axios";
-import { Loader2, Send } from "lucide-react";
-import { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
+import { useEffect, useMemo, useState } from "react";
+import { Brain, Loader2, Send, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { askRag } from "@/services/rag";
-import type { ChatMessage } from "@/types/rag";
-
-type ChatFormValues = {
-  question: string;
-};
-
-export function ChatInterface() {
-  const [error, setError] = useState<string | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const {
-    formState: { isSubmitting },
-    handleSubmit,
-    register,
-    reset,
-  } = useForm<ChatFormValues>({
-    defaultValues: {
-      question: "",
-    },
-  });
-
-  const hasMessages = messages.length > 0;
-  const lastSources = useMemo(
-    () => [...messages].reverse().find((message) => message.role === "assistant" && message.sources)?.sources ?? [],
-    [messages],
-  );
-
-  const onSubmit = handleSubmit(async (values) => {
-    const question = values.question.trim();
-
-    if (!question) {
-      return;
-    }
-
-    setError(null);
-    const userMessage: ChatMessage = {
-      content: question,
-      id: crypto.randomUUID(),
-      role: "user",
-    };
-
-    setMessages((current) => [...current, userMessage]);
-    reset();
-
-    try {
-      const response = await askRag({ question, top_k: 5 });
-      const assistantMessage: ChatMessage = {
-        content: response.answer,
-        id: crypto.randomUUID(),
-        role: "assistant",
-        sources: response.sources,
-      };
-      setMessages((current) => [...current, assistantMessage]);
-    } catch (caughtError) {
-      setError(getErrorMessage(caughtError, "Unable to ask the memory engine."));
-    }
-  });
-
-  return (
-    <div className="grid min-h-[calc(100vh-11rem)] gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
-      <Card className="flex min-h-[36rem] flex-col overflow-hidden">
-        <div className="flex-1 space-y-4 overflow-y-auto p-4">
-          {error ? (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          ) : null}
-
-          {!hasMessages ? (
-            <div className="flex h-full min-h-72 items-center justify-center text-center text-sm text-muted-foreground">
-              Ask a question about your saved memories or learning progress.
-            </div>
-          ) : null}
-
-          {messages.map((message) => (
-            <div
-              className={message.role === "user" ? "flex justify-end" : "flex justify-start"}
-              key={message.id}
-            >
-              <div
-                className={
-                  message.role === "user"
-                    ? "max-w-[82%] rounded-lg bg-primary px-4 py-3 text-sm leading-6 text-primary-foreground"
-                    : "max-w-[82%] rounded-lg border border-border bg-muted px-4 py-3 text-sm leading-6 text-foreground"
-                }
-              >
-                <p className="whitespace-pre-wrap">{message.content}</p>
-                {message.sources?.length ? (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {message.sources.map((source, sIdx) => {
-                      if (source.observation_id) {
-                        return (
-                          <Badge key={`${message.id}-obs-${source.observation_id}-${sIdx}`}>
-                            [Observation {source.observation_id}] {source.title}
-                          </Badge>
-                        );
-                      }
-                      return (
-                        <Badge key={`${message.id}-mem-${source.memory_id}-${sIdx}`}>
-                          [Memory {source.memory_id}] {source.title}
-                        </Badge>
-                      );
-                    })}
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <form className="border-t border-border p-4" onSubmit={onSubmit}>
-          <div className="space-y-2">
-            <Label htmlFor="question">Message</Label>
-            <div className="flex gap-2">
-              <Textarea
-                className="min-h-12 resize-none"
-                id="question"
-                placeholder="Ask what you studied, struggled with, or planned next..."
-                {...register("question", { required: true })}
-              />
-              <Button disabled={isSubmitting} size="icon" type="submit">
-                {isSubmitting ? (
-                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                ) : (
-                  <Send className="size-4" aria-hidden="true" />
-                )}
-                <span className="sr-only">Send</span>
-              </Button>
-            </div>
-          </div>
-        </form>
-      </Card>
-
-      <Card className="p-4">
-        <h2 className="text-sm font-semibold text-foreground">Sources</h2>
-        <p className="mt-1 text-xs text-muted-foreground">Evidence retrieved for the latest answer.</p>
-
-        <div className="mt-4 space-y-3">
-          {lastSources.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No sources yet.</p>
-          ) : null}
-
-          {lastSources.map((source, sIdx) => {
-            if (source.observation_id) {
-              return (
-                <Link
-                  className="block rounded-md border border-border p-3 transition-colors hover:bg-muted"
-                  href="/dashboard/capture"
-                  key={`source-obs-${source.observation_id}-${sIdx}`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="text-sm font-medium text-foreground">
-                      [Observation {source.observation_id}] {source.title}
-                    </p>
-                    <Badge className="bg-transparent">{source.category}</Badge>
-                  </div>
-                  {source.evidence ? (
-                    <p className="mt-2 text-xs text-muted-foreground italic line-clamp-2">
-                      &quot;{source.evidence}&quot;
-                    </p>
-                  ) : null}
-                  {source.capture_id ? (
-                    <p className="mt-1 text-xs text-primary font-medium">
-                      From Capture #{source.capture_id}
-                    </p>
-                  ) : null}
-                </Link>
-              );
-            }
-            return (
-              <Link
-                className="block rounded-md border border-border p-3 transition-colors hover:bg-muted"
-                href={`/dashboard/memories/${source.memory_id}`}
-                key={`source-mem-${source.memory_id}-${sIdx}`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <p className="text-sm font-medium text-foreground">
-                    [Memory {source.memory_id}] {source.title}
-                  </p>
-                  <Badge>{source.category}</Badge>
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Distance {source.distance.toFixed(4)}
-                </p>
-              </Link>
-            );
-          })}
-        </div>
-      </Card>
-    </div>
-  );
+import { askRag, getChatHistory } from "@/services/rag";
+import { captureHref, memoryHref } from "@/lib/routes";
+import type { ChatMessage, RAGSource } from "@/types/rag";
+type Message = ChatMessage & { historical?: boolean };
+function sourceHref(source: RAGSource) { return source.observation_id ? captureHref(source.capture_id, source.observation_id) : memoryHref(source.memory_id); }
+function Content({ message }: { message: Message }) {
+ return <p className="whitespace-pre-wrap [overflow-wrap:anywhere]">{message.content.split(/(\[(?:Memory|Observation) \d+\])/g).map((part, index) => {
+  const citation = /^\[(Memory|Observation) (\d+)\]$/.exec(part);
+  const source = citation && message.sources?.find(item => citation[1] === "Memory" ? item.memory_id === Number(citation[2]) : item.observation_id === Number(citation[2]));
+  return source ? <Link className="rounded border border-current/25 px-1 font-medium underline underline-offset-4" key={index} href={sourceHref(source)}>{part}</Link> : <span key={index}>{part}</span>;
+ })}</p>;
 }
-
-function getErrorMessage(error: unknown, fallback: string) {
-  return error instanceof AxiosError ? error.response?.data?.detail ?? fallback : fallback;
+export function ChatInterface() {
+ const [messages, setMessages] = useState<Message[]>([]); const [question, setQuestion] = useState(""); const [busy, setBusy] = useState(false); const [error, setError] = useState<string | null>(null); const [historyError, setHistoryError] = useState(false); const [loadingHistory, setLoadingHistory] = useState(true); const [cursor, setCursor] = useState<number | undefined>(); const [more, setMore] = useState(false);
+ async function loadHistory(before?: number) { setLoadingHistory(true); try { const history = await getChatHistory(before); const older: Message[] = [...history].reverse().flatMap(item => [{ id: `history-${item.id}-user`, role: "user" as const, content: item.message, historical: true }, { id: `history-${item.id}-assistant`, role: "assistant" as const, content: item.response, historical: true }]); setMessages(previous => [...older.filter(item => !previous.some(current => current.id === item.id)), ...previous]); setCursor(history[history.length - 1]?.id); setMore(history.length === 20); setHistoryError(false); } catch { setHistoryError(true); } finally { setLoadingHistory(false); } }
+ useEffect(() => { queueMicrotask(() => { void loadHistory(); }); }, []);
+ const latest = useMemo(() => [...messages].reverse().find(item => item.role === "assistant" && item.sources), [messages]);
+ async function send(event: React.FormEvent) { event.preventDefault(); if (!question.trim() || busy) return; const text = question.trim(); setBusy(true); setError(null); setMessages(previous => [...previous, { id: crypto.randomUUID(), role: "user", content: text }]); setQuestion(""); try { const answer = await askRag({ question: text, top_k: 5 }); setMessages(previous => [...previous, { id: crypto.randomUUID(), role: "assistant", content: answer.answer, sources: answer.sources }]); } catch { setQuestion(text); setError("We could not answer just now. Your question is ready to retry."); } finally { setBusy(false); } }
+ return <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_300px]"><Card className="flex min-h-[65vh] min-w-0 flex-col"><div className="flex-1 space-y-5 p-4 sm:p-6" role="log" aria-label="Conversation" aria-live="polite">{historyError ? <p role="alert" className="text-sm">Earlier conversations could not be loaded. <button className="min-h-11 underline" onClick={() => void loadHistory(cursor)}>Retry history</button></p> : null}{loadingHistory ? <p role="status" className="text-sm text-muted-foreground">Loading earlier conversations…</p> : more ? <Button variant="outline" onClick={() => void loadHistory(cursor)}>Load older conversations</Button> : null}{!messages.length && !loadingHistory ? <div className="mx-auto flex min-h-72 max-w-lg flex-col items-center justify-center text-center"><span className="rounded-2xl bg-sidebar-accent p-4 text-primary"><Brain className="size-7" aria-hidden="true" /></span><h2 className="mt-5 text-xl font-semibold">A conversation with your learning</h2><p className="mt-2 text-sm text-muted-foreground">Find where you left off, revisit an open question, or ask about your saved memories.</p><div className="mt-5 flex flex-wrap justify-center gap-2">{["Where did I stop learning?", "What was I struggling with?", "What should I practice next?"].map(prompt => <Button key={prompt} variant="outline" className="h-auto min-h-11 whitespace-normal text-left" onClick={() => setQuestion(prompt)}>{prompt}</Button>)}</div></div> : null}{messages.map(message => <div className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`} key={message.id}><div className={message.role === "user" ? "max-w-[95%] rounded-2xl rounded-br-sm bg-primary px-5 py-4 text-sm leading-7 text-primary-foreground sm:max-w-[85%]" : "max-w-[95%] rounded-2xl rounded-bl-sm border border-border bg-muted/40 px-5 py-4 text-sm leading-7 sm:max-w-[90%]"}><p className="mb-1 text-[11px] font-semibold uppercase tracking-widest opacity-75">{message.role === "user" ? "You" : "Learning assistant"}</p><Content message={message} />{message.historical && message.role === "assistant" ? <p className="mt-3 border-t border-border pt-2 text-xs text-muted-foreground">Earlier answer. Supporting source records were not saved with this conversation.</p> : null}</div></div>)}{busy ? <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin" aria-hidden="true" />Looking through your learning…</p> : null}{error ? <p role="alert" className="text-sm text-destructive">{error}</p> : null}</div><form onSubmit={send} className="border-t border-border p-4 sm:p-6"><label htmlFor="question" className="mb-2 block text-sm font-medium">Ask your learning assistant</label><div className="flex items-end gap-2"><Textarea id="question" maxLength={4000} rows={2} value={question} onChange={event => setQuestion(event.target.value)} placeholder="What do I want to pick up next?" required /><Button type="submit" disabled={busy || !question.trim()} aria-label="Send question" size="icon"><Send aria-hidden="true" /></Button></div><p className="mt-2 text-xs text-muted-foreground">General questions may send retrieved excerpts to Gemini. Answers are limited to saved evidence.</p></form></Card><aside><Card className="p-5"><h2 className="font-semibold">Behind the answer</h2><p className="mt-2 text-xs leading-relaxed text-muted-foreground">Retrieved candidates are shown here. A source is only labeled cited when its reference appears in the answer.</p><div className="mt-5 space-y-3">{!latest?.sources?.length ? <p className="text-sm text-muted-foreground">Supporting records will appear with your next grounded answer.</p> : latest.sources.map((source, index) => { const reference = source.observation_id ? `[Observation ${source.observation_id}]` : `[Memory ${source.memory_id}]`; const cited = latest.content.includes(reference); return <Link className="block rounded-xl border border-border p-4 hover:bg-muted" key={index} href={sourceHref(source)}><div className="mb-2 flex flex-wrap items-center gap-2"><Badge>{source.observation_id ? "Observation" : "Memory"}</Badge><span className="text-[11px] text-muted-foreground">{cited ? "Referenced in answer" : "Retrieved context"}</span></div><p className="text-sm font-medium">{reference} {source.title}</p>{source.evidence ? <p className="mt-2 line-clamp-3 text-xs text-muted-foreground">{source.evidence}</p> : null}<span className="mt-3 inline-flex items-center gap-1 text-xs text-primary">Open source <ArrowUpRight aria-hidden="true" className="size-3" /></span></Link>; })}</div></Card></aside></div>;
 }

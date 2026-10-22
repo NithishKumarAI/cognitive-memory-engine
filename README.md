@@ -1,513 +1,75 @@
 # Cognitive Memory Engine
 
-![Status](https://img.shields.io/badge/status-deployed-success)
-![FastAPI](https://img.shields.io/badge/backend-FastAPI-green)
-![Next.js](https://img.shields.io/badge/frontend-Next.js-black)
-![PostgreSQL](https://img.shields.io/badge/database-PostgreSQL-blue)
-![pgvector](https://img.shields.io/badge/vector-pgvector-purple)
+A personal learning workspace for capturing reflections, reviewing AI interpretations and resuming learning from saved evidence. Phase 4 is verified locally; no Phase 4 production deployment has been performed. Older demo deployments and screenshots are historical and do not establish the current release state.
 
-> A full-stack AI-powered learning intelligence platform that transforms study activity into structured memories, semantic retrieval, personalized analytics, and learning recommendations.
+## What you can do
 
-## Overview
+- Capture text or record audio in a supported secure browser. Audio is sent for cloud transcription only after explicit consent; the transcript stays editable before analysis.
+- Review structured AI suggestions (learned, self-reported understanding, difficulties, open questions and intended next steps), correct them, then explicitly confirm. Analysis alone does not establish confirmed learning or mastery.
+- Organize learning paths, study logs and manual memories. Confirmed captures and observations preserve their source; creating a searchable memory is optional.
+- Resume from checkpoints, inspect exact supporting captures/observations, and record completion, resolution or dismissal with retry-safe feedback.
+- Search your owned paths, logs, memories, captures and observations. Review saved capture history and earlier assistant conversations.
+- Ask grounded questions over owned saved history. Live answers separate referenced evidence from retrieved context; older answers do not pretend to have persisted citations.
+- Explore recorded time, activity patterns and confirmed-learning counts. Activity is not a mastery score. Light, dark and system appearance work with desktop and mobile navigation.
 
-Cognitive Memory Engine is a production-style AI learning platform designed to help users capture, organize, retrieve, and understand their learning history.
+## Architecture
 
-The system allows users to create Learning Tracks, log study sessions, store structured memories, generate vector embeddings, perform semantic retrieval, interact through Retrieval-Augmented Generation (RAG), and receive analytics-driven recommendations.
+Next.js App Router / React / TypeScript / Tailwind / Recharts talks to FastAPI through a bearer-token Axios client. SQLAlchemy and Alembic manage PostgreSQL with pgvector. Gemini provides structured extraction, transcription and contextual answers; SentenceTransformers supplies 768-dimensional embeddings. Confirmed evidence and deterministic continuity logic remain separate from model suggestions. The existing JWT/localStorage architecture is preserved.
 
-Unlike traditional note-taking applications, Cognitive Memory Engine combines semantic memory, vector search, analytics, and recommendation systems to create a searchable and actionable learning knowledge base.
+`Text or consented audio → editable text → AI draft → user review → confirmed capture + observations → optional memory/embedding → continuity, retrieval and recommendations`
 
----
-## Why This Project?
+Deleting a learning path detaches historical records instead of erasing the history. Checkpoint summaries bound displayed evidence bodies while retaining global unresolved counts. Search returns at most 30 results, chat history pages at most 50, capture history pages at most 50; the interface requests smaller pages.
 
-Traditional note-taking systems store information but do not help users understand learning progress.
+## Local development
 
-Cognitive Memory Engine transforms study activity into structured memories, semantic retrieval, analytics, and personalized recommendations, creating a searchable learning intelligence system.
+Use Python 3.12, Node 24 and a **development-only** PostgreSQL database with pgvector. Never use production credentials for local tests. Configure a role and database according to your local PostgreSQL installation; install `vector` with an authorized database role.
 
----
-
-## Live Demo
-
-Frontend:
-https://cognitive-memory-frontend-244986175934.asia-south1.run.app/
-
-Backend API:
-https://cognitive-memory-backend-244986175934.asia-south1.run.app/docs
-
----
-## Project Highlights
-
-- Built a full-stack AI Learning Intelligence Platform using FastAPI, PostgreSQL, pgvector, Gemini 2.5 Flash, and Next.js
-- Implemented semantic memory retrieval using vector embeddings and HNSW indexing
-- Developed a Retrieval-Augmented Generation (RAG) pipeline with source attribution
-- Built analytics services for learning progress, consistency tracking, and topic analysis
-- Designed a recommendation engine for neglected topics, weak areas, and learning continuity
-- Deployed frontend and backend services on Google Cloud Run
-- Integrated Neon PostgreSQL with pgvector for scalable semantic search
-## Core Learning Pipeline
-
-```text
-Learning Track
-        ↓
-    Study Log
-        ↓
-      Memory
-        ↓
-     Embedding
-        ↓
- Semantic Retrieval
-        ↓
-       RAG
-        ↓
-    Analytics
-        ↓
-  Recommendations
-```
-## Screenshots
-
-### Dashboard Overview
-
-![Dashboard Overview](screenshots/dashboard.png)
-
----
-
-### Semantic RAG Chat
-
-![RAG Chat](screenshots/rag-chat.png)
-
----
-
-### Analytics Dashboard
-
-![Analytics Dashboard](screenshots/analytics.png)
-
----
-
-### Recommendations Engine
-
-![Recommendations](screenshots/recommendations.png)
-
----
-
-
---
- 
-
-## Key Features
-
-### Authentication
-
-* User registration and login
-* JWT-based authentication
-* Protected API endpoints
-* Current user profile management
-
-### Learning Management
-
-* Learning Track management
-* Study Log management
-* Memory management
-* User-specific data isolation
-
-### Semantic Memory Layer
-
-* Automatic embedding generation
-* BAAI/bge-base-en-v1.5 embeddings
-* pgvector vector storage
-* HNSW vector indexing
-* Semantic memory search
-
-### Retrieval-Augmented Generation (RAG)
-
-* Memory-aware question answering
-* Gemini 2.5 Flash integration
-* Context-grounded responses
-* Source attribution
-* Conversation persistence
-
-### Analytics
-
-* Learning overview dashboard
-* Topic distribution analysis
-* Study hours tracking
-* Daily learning activity tracking
-* Study consistency metrics
-* Study streak calculation
-* Neglected topic detection
-
-### Recommendations
-
-* Continue-learning recommendations
-* Weak-area identification
-* Neglected-track detection
-* Daily recommendation feed
-
-### Deployment
-
-* Dockerized backend
-* Dockerized frontend
-* Google Cloud Run deployment
-* Neon PostgreSQL integration
-
----
-
-## High-Level Architecture
-![High-Level Architecture](diagrams/high-level-architecture.png)
-```mermaid
-flowchart TD
-
-User[User]
-
-Frontend[Next.js Dashboard]
-
-Backend[FastAPI Backend]
-
-DB[(PostgreSQL + pgvector)]
-
-Gemini[Gemini 2.5 Flash]
-
-Embed[BAAI bge-base-en-v1.5]
-
-User --> Frontend
-
-Frontend --> Backend
-
-Backend --> DB
-
-Backend --> Gemini
-
-Backend --> Embed
-```
-
----
-
-## RAG Architecture
-![RAG Architecture](diagrams/rag-architecture.png)
-```mermaid
-flowchart TD
-
-Q[User Question]
-
-E[Generate Query Embedding]
-
-S[Semantic Retrieval]
-
-C[Context Assembly]
-
-L[Gemini 2.5 Flash]
-
-R[Grounded Response]
-
-Q --> E
-
-E --> S
-
-S --> C
-
-C --> L
-
-L --> R
-```
-
----
-
-## Learning Intelligence Architecture
-![Learning Intelligence Architecture](diagrams/learning-intelligence-architecture.png)
-```mermaid
-flowchart TD
-
-LT[Learning Track]
-
-SL[Study Log]
-
-M[Memory]
-
-ME[Memory Embedding]
-
-SR[Semantic Retrieval]
-
-AN[Analytics]
-
-REC[Recommendations]
-
-LT --> SL
-
-SL --> M
-
-M --> ME
-
-ME --> SR
-
-SL --> AN
-
-AN --> REC
-```
-
----
-
-## Deployment Architecture
-![Deployment Architecture](diagrams/deployment-architecture.png)
-```mermaid
-flowchart TD
-
-User[User]
-
-Frontend[Next.js Frontend<br/>Google Cloud Run]
-
-Backend[FastAPI Backend<br/>Google Cloud Run]
-
-Neon[(Neon PostgreSQL)]
-
-Vector[(pgvector + HNSW)]
-
-Gemini[Gemini API]
-
-Embedding[BAAI bge-base-en-v1.5]
-
-User --> Frontend
-
-Frontend --> Backend
-
-Backend --> Neon
-
-Neon --> Vector
-
-Backend --> Gemini
-
-Backend --> Embedding
-```
-
----
-## Repository Structure
-
-```text
-cognitive-memory-engine/
-├── backend/
-├── frontend/
-├── docs/
-│   ├── architecture/
-│   └── screenshots/
-├── diagrams/
-├── README.md
-├── PROJECT_ARCHITECTURE_REPORT.md
-├── PROJECT_PROGRESS.md
-└── LICENSE
-```
-## Technology Stack
-
-### Backend
-
-* FastAPI
-* SQLAlchemy
-* PostgreSQL
-* Alembic
-* pgvector
-* JWT Authentication
-* Gemini 2.5 Flash
-* Sentence Transformers
-* BAAI/bge-base-en-v1.5
-
-### Frontend
-
-* Next.js
-* TypeScript
-* Tailwind CSS
-* shadcn/ui
-* Recharts
-* Axios
-
-### Deployment
-
-* Docker
-* Google Cloud Run
-* Google Artifact Registry
-* Neon PostgreSQL
-
----
-
-## Database Design
-
-### Core Entities
-
-```text
-User
-├── LearningTrack
-│     └── StudyLog
-│            └── Memory
-│                    └── MemoryEmbedding
-├── Conversation
-└── UsageLimit
-```
-
-### Vector Search
-
-* Embedding model: BAAI/bge-base-en-v1.5
-* Vector dimension: 768
-* Storage: PostgreSQL + pgvector
-* Similarity metric: Cosine similarity
-* Index type: HNSW
-
----
-
-## API Overview
-
-### Authentication
-
-* POST /register
-* POST /login
-* GET /me
-
-### Learning Tracks
-
-* POST /learning-tracks
-* GET /learning-tracks
-* PUT /learning-tracks/{id}
-* DELETE /learning-tracks/{id}
-
-### Study Logs
-
-* POST /study-logs
-* GET /study-logs
-* PUT /study-logs/{id}
-* DELETE /study-logs/{id}
-
-### Memories
-
-* POST /memories
-* GET /memories
-* PUT /memories/{id}
-* DELETE /memories/{id}
-* POST /memories/search
-
-### RAG
-
-* POST /rag/ask
-
-### Analytics
-
-* GET /analytics/overview
-* GET /analytics/topic-distribution
-* GET /analytics/daily-activity
-* GET /analytics/consistency
-
-### Recommendations
-
-* GET /recommendations/daily
-
----
-
-## Local Setup
-
-### Backend
-
-```bash
-cd backend
-
+```powershell
 python -m venv .venv
-
-source .venv/bin/activate
-
-pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m pip install -r backend/requirements.txt
+Copy-Item backend/.env.example backend/.env
+Copy-Item frontend/.env.example frontend/.env.local
 ```
 
-Create `.env`:
+Replace placeholders locally; never commit real secrets. Backend configuration: `DATABASE_URL`, `SECRET_KEY`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `GEMINI_TIMEOUT_MS`, `ACCESS_TOKEN_EXPIRE_MINUTES`, `FRONTEND_ORIGINS`. The public `NEXT_PUBLIC_API_URL` is compiled into the frontend at build time. An embedding model download may be required on first real use; provision network access/model caching deliberately.
 
-```env
-DATABASE_URL=
-SECRET_KEY=
-GEMINI_API_KEY=
-ACCESS_TOKEN_EXPIRE_MINUTES=720
+After reviewing migrations and confirming the target is your disposable development database:
+
+```powershell
+Set-Location backend
+..\.venv\Scripts\python.exe -m alembic upgrade head
+..\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
 ```
 
-Run:
+In another terminal, `cd frontend`, `npm ci`, `npm run dev`. Open `http://localhost:3000`; database-aware health is `http://127.0.0.1:8000/health`. For a production frontend build locally use `npm run build` then `npm start`. A browser-reachable HTTPS backend URL is required for a hosted frontend.
 
-```bash
-uvicorn app.main:app --reload
+## Isolated verification
+
+The test suite never falls back to the configured application database. Ordinary tests use fresh in-memory stores and mocked AI; PostgreSQL tests use explicitly opted-in, randomly named schemas.
+
+Create a **new disposable PostgreSQL instance** with pgvector and a database named `cme_phase1_test` on loopback. The CI workflow uses a dedicated `pgvector/pgvector:pg16` service with synthetic credentials. On Windows an independent `initdb` directory and unused loopback port also work; do not reuse a production or personal database just because its name matches. The test role must be able to create schemas and provision pgvector in this disposable instance.
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r backend/requirements-test.txt
+$env:PHASE1_TEST_DATABASE_URL='postgresql+psycopg://phase1:test-only@127.0.0.1:5432/cme_phase1_test'
+Set-Location backend
+..\.venv\Scripts\python.exe -m pytest -q
 ```
 
----
+Without the opt-in URL, PostgreSQL tests skip: that is not proof of PostgreSQL correctness. Browser instructions are in [frontend/README.md](frontend/README.md); they use real disposable PostgreSQL, synthetic accounts and mocked AI. No paid provider call, physical microphone or live deployment is verified by these tests.
 
-### Frontend
-
-```bash
+```powershell
 cd frontend
-
-npm install
+npm ci
+npm run lint
+npm run build
+npm run test:e2e
 ```
 
-Create `.env.local`:
+See [PHASE4_FINAL_PRODUCT_REPORT.md](PHASE4_FINAL_PRODUCT_REPORT.md) for actual results, screenshot evidence, remaining advisories and manual Windows checks. See [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) before any production action. CI definitions add verification only; they do not deploy.
 
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8000
-```
+## Privacy and limitations
 
-Run:
+Reflections, transcripts and retrieved context can be sent to Gemini during relevant operations. Voice processing requires consent; raw audio is not a saved learning record. Confirmed text, observations, optional memories and conversations persist in PostgreSQL. Configure provider retention, database backups, deletion policy and redacted monitoring for your environment. Do not put personal reflections, tokens, audio or provider responses into logs.
 
-```bash
-npm run dev
-```
-
----
-
-## Production Deployment
-### Live Deployment
-
-Frontend:
-https://cognitive-memory-frontend-244986175934.asia-south1.run.app
-
-Backend:
-https://cognitive-memory-backend-244986175934.asia-south1.run.app
-
-API Documentation:
-https://cognitive-memory-backend-244986175934.asia-south1.run.app/docs
-### Backend
-
-* Dockerized FastAPI application
-* Containerized with Docker
-* Deployed on Google Cloud Run
-
-### Frontend
-
-* Dockerized Next.js application
-* Deployed on Google Cloud Run
-
-### Database
-
-* Neon PostgreSQL
-* pgvector enabled
-* HNSW vector indexing
-
----
-
-
-## Key Learnings
-
-Through this project I gained practical experience with:
-
-- Designing layered FastAPI backend architectures
-- Implementing vector search using pgvector and HNSW indexing
-- Building Retrieval-Augmented Generation systems with Gemini
-- Developing analytics and recommendation pipelines
-- Managing PostgreSQL databases in production
-- Containerizing applications with Docker
-- Deploying scalable services on Google Cloud Run
-- Building full-stack applications with Next.js and TypeScript
-
-## Future Improvements
-
-* AI-powered voice note ingestion
-* Document ingestion and file uploads
-* Conversation-aware retrieval
-* Agentic learning coach
-* Hybrid search
-* Cross-encoder reranking
-* Conversation history UI
-* Usage-limit enforcement
-* Automated testing
-* CI/CD pipeline
-* Advanced learning intelligence engine
-
----
-
-## License
-
-This project is licensed under the MIT License.
+JWTs remain in localStorage: injected script could read them. Logout clears local credentials but does not revoke an issued token server-side. Owner checks and no-store responses protect API access; they do not replace HTTPS or a reviewed session/CSP design. Search is bounded literal matching, not a full-text engine. Continuity still scans narrow owner metadata, so it is not constant-memory at unlimited history sizes. Semantic relevance thresholds need calibration against a real authorized corpus. The application does not implement distributed user quotas; gateway limits and Gemini budget controls are release requirements. Dependency advisories, real provider/microphone checks and Docker/cloud verification are recorded explicitly in the report.

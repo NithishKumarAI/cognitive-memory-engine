@@ -7,7 +7,7 @@ import type {
 } from "@/types/analytics";
 
 export async function getAnalyticsOverview() {
-  const response = await api.get<AnalyticsOverview>("/analytics/overview");
+  const response = await api.get<AnalyticsOverview>("/analytics/overview", { params: { timezone: Intl.DateTimeFormat().resolvedOptions().timeZone } });
   return response.data;
 }
 
@@ -17,11 +17,11 @@ export async function getTopicDistribution() {
 }
 
 export async function getDailyActivity() {
-  const response = await api.get<DailyActivityItem[]>("/analytics/daily-activity");
+  const response = await api.get<DailyActivityItem[]>("/analytics/daily-activity", { params: { timezone: Intl.DateTimeFormat().resolvedOptions().timeZone } });
   return response.data;
 }
 
 export async function getConsistency() {
-  const response = await api.get<Consistency>("/analytics/consistency");
+  const response = await api.get<Consistency>("/analytics/consistency", { params: { timezone: Intl.DateTimeFormat().resolvedOptions().timeZone } });
   return response.data;
 }

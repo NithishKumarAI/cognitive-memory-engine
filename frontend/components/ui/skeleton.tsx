@@ -1,0 +1,1 @@
+export function Skeleton({ label = "Loading workspace" }: { label?: string }) { return <div role="status" aria-label={label} className="space-y-4 rounded-2xl border border-border bg-card p-6"><div className="h-6 w-2/3 animate-pulse rounded-lg bg-muted" /><div className="h-24 animate-pulse rounded-lg bg-muted" /><span className="sr-only">{label}</span></div>; }

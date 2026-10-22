@@ -1,7 +1,7 @@
 "use client";
+import { errorMessage } from "@/lib/errors";
 
 import Link from "next/link";
-import { AxiosError } from "axios";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -69,13 +69,13 @@ export default function MemoryDetailPage() {
           <CardHeader>
             <div className="flex flex-wrap items-center gap-2">
               <Badge>{memory.category}</Badge>
-              {memory.study_log_id ? <Badge>Study log #{memory.study_log_id}</Badge> : null}
+              {memory.study_log_id ? <Link className="text-sm text-primary underline" href={`/dashboard/study-logs#record-${memory.study_log_id}`}>Study log #{memory.study_log_id}</Link> : null}
             </div>
             <CardTitle>{memory.title}</CardTitle>
             <CardDescription>Memory #{memory.id}</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="whitespace-pre-wrap text-sm leading-7 text-foreground">{memory.content}</p>
+            <p className="prose-memory max-w-3xl text-base text-foreground">{memory.content}</p>
           </CardContent>
         </Card>
       ) : null}
@@ -84,5 +84,5 @@ export default function MemoryDetailPage() {
 }
 
 function getErrorMessage(error: unknown, fallback: string) {
-  return error instanceof AxiosError ? error.response?.data?.detail ?? fallback : fallback;
+  return errorMessage(error, fallback);
 }

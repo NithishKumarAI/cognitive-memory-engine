@@ -1,6 +1,6 @@
 "use client";
+import { errorMessage } from "@/lib/errors";
 
-import { AxiosError } from "axios";
 import { Activity, AlertTriangle, BookMarked, CheckCircle2, Clock, Flame, HelpCircle, Loader2, NotebookText } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -41,7 +41,7 @@ import type { LearningOverview } from "@/types/continuity";
 const chartColors = ["#0f766e", "#2563eb", "#f59e0b", "#dc2626", "#7c3aed", "#059669"];
 
 export default function AnalyticsPage() {
-  const [consistency, setConsistency] = useState<Consistency | null>(null);
+  const [, setConsistency] = useState<Consistency | null>(null);
   const [dailyActivity, setDailyActivity] = useState<DailyActivityItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -82,26 +82,19 @@ export default function AnalyticsPage() {
   const activityChartData = useMemo(
     () =>
       dailyActivity.map((item) => ({
-        date: new Date(item.date).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+        date: new Date(`${item.date}T12:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
         minutes: item.study_minutes,
       })),
     [dailyActivity],
   );
 
-  const consistencyChartData = useMemo(
-    () => [
-      { label: "Current Streak", value: consistency?.current_streak ?? 0 },
-      { label: "Frequency", value: consistency?.frequency_percentage ?? 0 },
-      { label: "Score", value: consistency?.consistency_score ?? 0 },
-    ],
-    [consistency],
-  );
+  const consistencyChartData = useMemo(() => activityChartData.slice(-30), [activityChartData]);
 
   return (
     <div className="space-y-6">
       <PageHeader
-        description="Review study volume, topic focus, daily activity, and confirmed learning intelligence."
-        title="Analytics"
+        description="Recorded time and activity, alongside the questions and intentions in your confirmed updates."
+        title="A clearer picture of your learning"
       />
 
       {error ? (
@@ -116,7 +109,7 @@ export default function AnalyticsPage() {
         </Card>
       ) : (
         <>
-          {/* Study Volume & Streak */}
+          <h2 className="text-xl font-semibold">Recorded study activity</h2>
           <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard
               helper={`${overview?.total_topics ?? 0} topics covered`}
@@ -134,20 +127,20 @@ export default function AnalyticsPage() {
               helper="Consecutive study days (timezone-aware)"
               icon={Flame}
               label="Current Streak"
-              value={`${overview?.current_streak ?? 0} days`}
+              value={`${overview?.current_streak ?? 0} ${overview?.current_streak === 1 ? "day" : "days"}`}
             />
             <MetricCard
-              helper="Weighted activity score"
+              helper="Activity consistency only; not a knowledge score"
               icon={Activity}
               label="Consistency Score"
               value={(overview?.consistency_score ?? 0).toFixed(1)}
             />
           </section>
 
-          {/* Learning Intelligence & Continuity Section */}
+          {/* Confirmed learning reflections Section */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Learning Intelligence & Continuity</CardTitle>
+              <CardTitle className="text-lg">Confirmed learning reflections</CardTitle>
               <CardDescription>
                 Confirmed observations, self-reported understanding, and learning items needing attention.
               </CardDescription>
@@ -166,7 +159,7 @@ export default function AnalyticsPage() {
                 </div>
 
                 <div className="rounded-lg border border-border p-3.5 space-y-1">
-                  <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-medium text-xs">
+                  <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-400 font-medium text-xs">
                     <CheckCircle2 className="size-4" />
                     <span>Understood Self-Reports</span>
                   </div>
@@ -188,7 +181,7 @@ export default function AnalyticsPage() {
                 </div>
 
                 <div className="rounded-lg border border-border p-3.5 space-y-1">
-                  <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-medium text-xs">
+                  <div className="flex items-center gap-2 text-amber-800 dark:text-amber-400 font-medium text-xs">
                     <HelpCircle className="size-4" />
                     <span>Open Questions</span>
                   </div>
@@ -204,11 +197,11 @@ export default function AnalyticsPage() {
           {/* Study History and Consistency Charts */}
           <section className="grid gap-4 xl:grid-cols-2">
             <ChartCard
-              description="Total hours by topic, weighted by session count."
-              title="Topic Distribution"
+              description="Actual logged hours by topic. Captures without minutes add no study time."
+              title="Topic Distribution" hasData={topicDistribution.length > 0}
             >
-              <ResponsiveContainer height="100%" width="100%">
-                <PieChart>
+              <ResponsiveContainer height="100%" width="100%" initialDimension={{ width: 300, height: 280 }}>
+                <PieChart accessibilityLayer>
                   <Pie
                     data={topicDistribution}
                     dataKey="total_hours"
@@ -226,27 +219,27 @@ export default function AnalyticsPage() {
               </ResponsiveContainer>
             </ChartCard>
 
-            <ChartCard description="Minutes studied per active day." title="Daily Activity">
-              <ResponsiveContainer height="100%" width="100%">
-                <BarChart data={activityChartData}>
+            <ChartCard description="Minutes studied per active day." title="Daily Activity" hasData={activityChartData.length > 0}>
+              <ResponsiveContainer height="100%" width="100%" initialDimension={{ width: 300, height: 280 }}>
+                <BarChart data={activityChartData.slice(-30)} accessibilityLayer>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="date" tickLine={false} />
-                  <YAxis tickLine={false} />
+                  <XAxis dataKey="date" tickLine={false} tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} minTickGap={25} />
+                  <YAxis tickLine={false} tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} />
                   <Tooltip formatter={(value) => [`${value} min`, "Study time"]} />
                   <Bar dataKey="minutes" fill="#0f766e" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </ChartCard>
 
-            <ChartCard description="Streak, study frequency, and consistency score." title="Consistency">
-              <ResponsiveContainer height="100%" width="100%">
-                <LineChart data={consistencyChartData}>
+            <ChartCard description="Logged minutes on your latest 30 active dates. This is activity, not mastery." title="Recent study rhythm" hasData={consistencyChartData.length > 0}>
+              <ResponsiveContainer height="100%" width="100%" initialDimension={{ width: 300, height: 280 }}>
+                <LineChart data={consistencyChartData} accessibilityLayer>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="label" tickLine={false} />
-                  <YAxis tickLine={false} />
-                  <Tooltip />
+                  <XAxis dataKey="date" tickLine={false} tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} minTickGap={25} />
+                  <YAxis tickLine={false} tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} />
+                  <Tooltip contentStyle={{ background: "var(--card)", borderColor: "var(--border)", color: "var(--foreground)" }} formatter={value => [`${value} min`, "Logged study time"]} />
                   <Line
-                    dataKey="value"
+                    dataKey="minutes"
                     dot={{ r: 5 }}
                     stroke="#2563eb"
                     strokeWidth={3}
@@ -256,12 +249,12 @@ export default function AnalyticsPage() {
               </ResponsiveContainer>
             </ChartCard>
 
-            <ChartCard description="Session volume by topic." title="Topic Sessions">
-              <ResponsiveContainer height="100%" width="100%">
-                <BarChart data={topicDistribution} layout="vertical">
+            <ChartCard description="Session volume by topic." title="Topic Sessions" hasData={topicDistribution.length > 0}>
+              <ResponsiveContainer height="100%" width="100%" initialDimension={{ width: 300, height: 280 }}>
+                <BarChart data={topicDistribution.slice(0, 12)} layout="vertical" accessibilityLayer>
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                  <XAxis type="number" tickLine={false} />
-                  <YAxis dataKey="topic" type="category" tickLine={false} width={110} />
+                  <XAxis type="number" allowDecimals={false} tickLine={false} tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} />
+                  <YAxis dataKey="topic" type="category" tickLine={false} width={110} tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} />
                   <Tooltip formatter={(value) => [`${value}`, "Sessions"]} />
                   <Bar dataKey="session_count" fill="#f59e0b" radius={[0, 4, 4, 0]} />
                 </BarChart>
@@ -275,5 +268,5 @@ export default function AnalyticsPage() {
 }
 
 function getErrorMessage(error: unknown, fallback: string) {
-  return error instanceof AxiosError ? error.response?.data?.detail ?? fallback : fallback;
+  return errorMessage(error, fallback);
 }

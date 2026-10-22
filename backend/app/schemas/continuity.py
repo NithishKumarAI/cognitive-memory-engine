@@ -76,6 +76,10 @@ class ResumableCheckpointResponse(BaseModel):
     last_capture_at: datetime | None = None
     last_capture_excerpt: str | None = None
     latest_observation_id: int | None = None
+    latest_observation_capture_id: int | None = None
+    unresolved_difficulties_count: int = 0
+    unresolved_questions_count: int = 0
+    pending_next_steps_count: int = 0
     latest_observation_content: str | None = None
     understood_self_reports: list[ObservationBrief] = Field(default_factory=list)
     unresolved_difficulties: list[ObservationBrief] = Field(default_factory=list)

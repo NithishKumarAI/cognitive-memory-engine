@@ -1,5 +1,6 @@
 from contextlib import contextmanager
-from fastapi import APIRouter, Depends, HTTPException, Request
+from typing import Literal
+from fastapi import APIRouter, Depends, HTTPException, Request, Query
 from sqlalchemy.orm import Session
 from app.core.auth import get_current_user
 from app.db.dependencies import get_db
@@ -61,8 +62,13 @@ async def transcribe_audio(request: Request, user: User = Depends(get_current_us
 
 
 @router.get("", response_model=list[CaptureResponse])
-def list_captures(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    captures = db.query(LearningCapture).filter_by(user_id=user.id).order_by(LearningCapture.id.desc()).limit(20).all()
+def list_captures(limit: int = Query(20, ge=1, le=50), offset: int = Query(0, ge=0, le=10000),
+                  status: Literal["pending", "failed", "confirmed", "discarded"] | None = None,
+                  db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    query = db.query(LearningCapture).filter_by(user_id=user.id)
+    if status:
+        query = query.filter_by(status=status)
+    captures = query.order_by(LearningCapture.id.desc()).offset(offset).limit(limit).all()
     return [service.response(db, capture) for capture in captures]
 
 

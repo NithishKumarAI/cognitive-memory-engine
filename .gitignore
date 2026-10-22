@@ -216,3 +216,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local browser test output (screenshots have a curated index)
+frontend/test-results/
+frontend/playwright-report/
+.phase4-*

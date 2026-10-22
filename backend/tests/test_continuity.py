@@ -468,7 +468,7 @@ def test_learning_assistant_deterministic_continuity(db, client, headers, users)
     res_stop = client.post("/rag/ask", headers=headers, json={"question": "Where did I stop learning Python?"})
     assert res_stop.status_code == 200
     data_stop = res_stop.json()
-    assert "You last studied 'Python'" in data_stop["answer"]
+    assert "last recorded learning about 'Python'" in data_stop["answer"]
     assert len(data_stop["sources"]) >= 1
     assert data_stop["sources"][0]["observation_id"] is not None
 

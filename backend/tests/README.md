@@ -11,7 +11,7 @@ Set-Location backend
 
 Use an existing virtual environment if present. `requirements-test.txt` is the
 small application test runtime; it excludes Torch and SentenceTransformer.
-The production dependency file remains unchanged.
+Phase 4 also updates compatible security patches in the production dependency file; real model-runtime compatibility is not established by the mocked test runtime.
 
 The default suite uses a fresh in-memory SQLite database for each test, with
 foreign keys enabled. It tests ORM transactions, ownership, authentication,

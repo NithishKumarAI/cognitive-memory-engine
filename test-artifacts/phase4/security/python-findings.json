@@ -1,0 +1,186 @@
+{
+  "command": "python -m pip_audit --no-deps --disable-pip -r backend/requirements.txt -f json",
+  "date": "2026-10-22",
+  "note": "Raw tool count includes duplicate advisory IDs; no reachability or live-model verification is implied.",
+  "findings": [
+    {
+      "name": "cryptography",
+      "version": "48.0.1",
+      "advisories": [
+        {
+          "id": "PYSEC-2026-3554",
+          "aliases": [
+            "GHSA-m2h6-j472-rp4c",
+            "CVE-2026-69248"
+          ],
+          "fix_versions": [
+            "49.0.0"
+          ]
+        },
+        {
+          "id": "PYSEC-2026-3552",
+          "aliases": [
+            "CVE-2026-69247",
+            "GHSA-g6cj-pr64-35w5"
+          ],
+          "fix_versions": [
+            "50.0.0"
+          ]
+        },
+        {
+          "id": "PYSEC-2026-3553",
+          "aliases": [
+            "GHSA-jwv3-5hgf-82ww",
+            "CVE-2026-69249"
+          ],
+          "fix_versions": [
+            "49.0.0"
+          ]
+        },
+        {
+          "id": "PYSEC-2026-3552",
+          "aliases": [
+            "CVE-2026-69247",
+            "GHSA-g6cj-pr64-35w5"
+          ],
+          "fix_versions": [
+            "50.0.0"
+          ]
+        },
+        {
+          "id": "PYSEC-2026-3553",
+          "aliases": [
+            "GHSA-jwv3-5hgf-82ww",
+            "CVE-2026-69249"
+          ],
+          "fix_versions": [
+            "49.0.0"
+          ]
+        },
+        {
+          "id": "PYSEC-2026-3554",
+          "aliases": [
+            "GHSA-m2h6-j472-rp4c",
+            "CVE-2026-69248"
+          ],
+          "fix_versions": [
+            "49.0.0"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ecdsa",
+      "version": "0.19.2",
+      "advisories": [
+        {
+          "id": "PYSEC-2026-1325",
+          "aliases": [
+            "CVE-2024-23342",
+            "GHSA-wj6h-64fc-37mp"
+          ],
+          "fix_versions": []
+        },
+        {
+          "id": "PYSEC-2026-1325",
+          "aliases": [
+            "CVE-2024-23342",
+            "GHSA-wj6h-64fc-37mp"
+          ],
+          "fix_versions": []
+        }
+      ]
+    },
+    {
+      "name": "fsspec",
+      "version": "2026.4.0",
+      "advisories": [
+        {
+          "id": "PYSEC-2026-4217",
+          "aliases": [
+            "CVE-2026-104851",
+            "GHSA-27vj-qcqg-25rc"
+          ],
+          "fix_versions": [
+            "2026.6.0"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "python-jose",
+      "version": "3.5.0",
+      "advisories": [
+        {
+          "id": "PYSEC-2026-4298",
+          "aliases": [
+            "GHSA-3qf3-8w2g-rqmx",
+            "CVE-2026-85394"
+          ],
+          "fix_versions": []
+        }
+      ]
+    },
+    {
+      "name": "sentence-transformers",
+      "version": "5.5.1",
+      "advisories": [
+        {
+          "id": "PYSEC-2026-4164",
+          "aliases": [
+            "GHSA-jhr6-gm9c-rqjv",
+            "CVE-2026-68770"
+          ],
+          "fix_versions": [
+            "5.6.0"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "setuptools",
+      "version": "81.0.0",
+      "advisories": [
+        {
+          "id": "PYSEC-2026-3447",
+          "aliases": [
+            "BIT-setuptools-2026-59890",
+            "CVE-2026-59890",
+            "GHSA-h35f-9h28-mq5c"
+          ],
+          "fix_versions": [
+            "83.0.0"
+          ]
+        },
+        {
+          "id": "PYSEC-2026-3447",
+          "aliases": [
+            "BIT-setuptools-2026-59890",
+            "CVE-2026-59890",
+            "GHSA-h35f-9h28-mq5c"
+          ],
+          "fix_versions": [
+            "83.0.0"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "torch",
+      "version": "2.12.0",
+      "advisories": [
+        {
+          "id": "PYSEC-2025-194",
+          "aliases": [
+            "BIT-pytorch-2025-3000",
+            "GHSA-rrmf-rvhw-rf47",
+            "CVE-2025-3000"
+          ],
+          "fix_versions": [
+            "2.13.0"
+          ]
+        }
+      ]
+    }
+  ]
+}

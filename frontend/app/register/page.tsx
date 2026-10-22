@@ -1,5 +1,6 @@
 "use client";
 
+import { branding } from "@/lib/branding";
 import Link from "next/link";
 import { AxiosError } from "axios";
 import { Brain, Loader2 } from "lucide-react";
@@ -53,7 +54,7 @@ export default function RegisterPage() {
           </div>
           <div>
             <CardTitle>Create account</CardTitle>
-            <CardDescription>Start building your adaptive learning memory.</CardDescription>
+            <CardDescription>Make a little space for what you learn with {branding.name}.</CardDescription>
           </div>
         </CardHeader>
         <CardContent>

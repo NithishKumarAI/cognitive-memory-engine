@@ -240,8 +240,8 @@ def get_study_streak(db: Session, user_id: int, tz_name: str = "UTC"):
 def get_study_frequency(db: Session, user_id: int, tz_name: str = "UTC"):
     tz = validate_timezone(tz_name)
     today = datetime.now(timezone.utc).astimezone(tz).date()
-    seven_days_ago = today - timedelta(days=7)
-    thirty_days_ago = today - timedelta(days=30)
+    seven_days_ago = today - timedelta(days=6)
+    thirty_days_ago = today - timedelta(days=29)
 
     logs = (
         db.query(StudyLog.created_at)
@@ -256,9 +256,9 @@ def get_study_frequency(db: Session, user_id: int, tz_name: str = "UTC"):
         if created_at is None:
             continue
         d = _to_user_date(created_at, tz)
-        if d >= seven_days_ago:
+        if seven_days_ago <= d <= today:
             dates_last_7.add(d)
-        if d >= thirty_days_ago:
+        if thirty_days_ago <= d <= today:
             dates_last_30.add(d)
 
     return {

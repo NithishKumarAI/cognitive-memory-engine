@@ -1,4 +1,5 @@
 import re
+from math import isfinite
 from datetime import datetime, timezone
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -69,7 +70,7 @@ class RAGService:
             cap_id = matched_cp.last_capture_id or "N/A"
             obs_content = matched_cp.latest_observation_content or matched_cp.last_capture_excerpt or ""
             answer = (
-                f"You last studied '{matched_cp.topic}' in Capture #{cap_id} on {last_date_str}. "
+                f"Your last recorded learning about '{matched_cp.topic}' was in Capture #{cap_id} on {last_date_str}. "
                 f"Your latest recorded observation was: '{obs_content}'."
             )
             sources = []
@@ -78,7 +79,7 @@ class RAGService:
                     "source_type": "observation",
                     "memory_id": None,
                     "observation_id": matched_cp.latest_observation_id,
-                    "capture_id": matched_cp.last_capture_id,
+                    "capture_id": matched_cp.latest_observation_capture_id or matched_cp.last_capture_id,
                     "title": f"Observation: {matched_cp.topic}",
                     "category": "learning_checkpoint",
                     "distance": 0.0,
@@ -272,6 +273,9 @@ class RAGService:
         except Exception:
             retrieval_results = []
 
+        # Nearest does not imply relevant; reject distant/nonfinite candidates.
+        retrieval_results = [(memory, distance) for memory, distance in retrieval_results
+                             if isfinite(float(distance)) and float(distance) <= 0.5]
         memories = [memory for memory, _distance in retrieval_results]
 
         # 3. Retrieve confirmed learning observations matching keywords

@@ -1,11 +1,15 @@
 "use client";
+import { errorMessage } from "@/lib/errors";
 
 import Link from "next/link";
-import { AxiosError } from "axios";
 import { Edit, Eye, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { EntityTable } from "@/components/dashboard/entity-table";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
+import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { FormShell } from "@/components/dashboard/form-shell";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { MemoryForm } from "@/components/forms/memory-form";
@@ -18,6 +22,9 @@ import type { Memory, MemoryPayload } from "@/types/memory";
 import type { StudyLog } from "@/types/studyLog";
 
 export default function MemoriesPage() {
+  const { confirm, dialog } = useConfirmDialog();
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [formMode, setFormMode] = useState<"create" | "edit" | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -47,6 +54,7 @@ export default function MemoriesPage() {
   }, []);
 
   async function handleSubmit(payload: MemoryPayload) {
+    try {
     if (formMode === "edit" && selectedMemory) {
       await updateMemory(selectedMemory.id, payload);
     } else {
@@ -55,10 +63,11 @@ export default function MemoriesPage() {
 
     closeForm();
     await loadData();
+    } catch (error) { setError(getErrorMessage(error, "Unable to save. Check your input and retry.")); }
   }
 
   async function handleDelete(memory: Memory) {
-    const confirmed = window.confirm(`Delete memory "${memory.title}"?`);
+    const confirmed = await confirm(`Delete memory “${memory.title}”? Its original capture, if any, remains in your learning history.`);
 
     if (!confirmed) {
       return;
@@ -115,75 +124,13 @@ export default function MemoriesPage() {
         </FormShell>
       ) : null}
 
-      <EntityTable
-        columns={[
-          {
-            header: "Title",
-            key: "title",
-            render: (memory) => <span className="font-medium text-foreground">{memory.title}</span>,
-          },
-          {
-            header: "Category",
-            key: "category",
-            render: (memory) => <Badge>{memory.category}</Badge>,
-          },
-          {
-            header: "Study Log",
-            key: "studyLog",
-            render: (memory) => (
-              <span className="text-muted-foreground">{studyLogTopic(memory.study_log_id)}</span>
-            ),
-          },
-          {
-            header: "Content",
-            key: "content",
-            render: (memory) => (
-              <span className="line-clamp-2 text-muted-foreground">{memory.content}</span>
-            ),
-          },
-          {
-            className: "w-36 text-right",
-            header: "",
-            key: "actions",
-            render: (memory) => (
-              <div className="flex justify-end gap-1">
-                <Button aria-label={`View ${memory.title}`} asChild size="icon" variant="ghost">
-                  <Link href={`/dashboard/memories/${memory.id}`}>
-                    <Eye className="size-4" aria-hidden="true" />
-                  </Link>
-                </Button>
-                <Button
-                  aria-label={`Edit ${memory.title}`}
-                  onClick={() => {
-                    setSelectedMemory(memory);
-                    setFormMode("edit");
-                  }}
-                  size="icon"
-                  variant="ghost"
-                >
-                  <Edit className="size-4" aria-hidden="true" />
-                </Button>
-                <Button
-                  aria-label={`Delete ${memory.title}`}
-                  onClick={() => void handleDelete(memory)}
-                  size="icon"
-                  variant="ghost"
-                >
-                  <Trash2 className="size-4" aria-hidden="true" />
-                </Button>
-              </div>
-            ),
-          },
-        ]}
-        data={memories}
-        emptyMessage="No memories yet. Create one from an insight you want to keep."
-        getRowKey={(memory) => memory.id}
-        isLoading={isLoading}
-      />
+      <div className="flex flex-col gap-3 sm:flex-row"><Input aria-label="Filter memories" placeholder="Find a memory in this view…" value={query} onChange={event => setQuery(event.target.value)} /><select aria-label="Filter category" className="min-h-11 rounded-xl border border-input bg-card px-3 text-sm" value={category} onChange={event => setCategory(event.target.value)}><option value="">All categories</option>{[...new Set(memories.map(memory => memory.category))].map(value => <option key={value}>{value}</option>)}</select></div>
+      {isLoading ? <Skeleton /> : memories.filter(memory => (!category || memory.category === category) && `${memory.title} ${memory.content}`.toLowerCase().includes(query.toLowerCase())).length ? <div className="grid gap-4 md:grid-cols-2">{memories.filter(memory => (!category || memory.category === category) && `${memory.title} ${memory.content}`.toLowerCase().includes(query.toLowerCase())).map(memory => <Card className="flex flex-col p-6" key={memory.id}><Badge className="self-start">{memory.category}</Badge><Link className="mt-4 text-lg font-semibold hover:text-primary" href={`/dashboard/memories/${memory.id}`}>{memory.title}</Link><p className="mt-3 line-clamp-4 whitespace-pre-wrap text-sm leading-7 text-muted-foreground">{memory.content}</p>{memory.study_log_id ? <Link className="mt-4 min-h-11 text-xs text-primary" href={`/dashboard/study-logs#record-${memory.study_log_id}`}>Study log: {studyLogTopic(memory.study_log_id)}</Link> : <p className="mt-4 text-xs text-muted-foreground">No linked timed session</p>}<div className="mt-auto flex flex-wrap gap-2 pt-5"><Button asChild variant="secondary"><Link href={`/dashboard/memories/${memory.id}`}><Eye aria-hidden="true" />Read memory</Link></Button><Button variant="ghost" aria-label={`Edit ${memory.title}`} onClick={() => { setSelectedMemory(memory); setFormMode("edit"); }}><Edit aria-hidden="true" />Edit</Button><Button variant="ghost" aria-label={`Delete ${memory.title}`} onClick={() => void handleDelete(memory)}><Trash2 aria-hidden="true" />Delete</Button></div></Card>)}</div> : <EmptyState title={memories.length ? "No matching memories" : "Keep what you want to remember"} description="Save a memory manually or opt into searchable memories when you confirm a capture." href="/dashboard/capture" />}
+      {dialog}
     </div>
   );
 }
 
 function getErrorMessage(error: unknown, fallback: string) {
-  return error instanceof AxiosError ? error.response?.data?.detail ?? fallback : fallback;
+  return errorMessage(error, fallback);
 }

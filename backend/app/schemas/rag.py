@@ -1,8 +1,10 @@
+from app.schemas.validation import NonBlank
+from typing import Annotated
 from pydantic import BaseModel, ConfigDict, Field
 
 
 class RAGRequest(BaseModel):
-    question: str
+    question: Annotated[NonBlank, Field(max_length=4000)]
     top_k: int = Field(
         default=5,
         ge=1,

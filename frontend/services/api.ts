@@ -23,4 +23,12 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(response => response, error => {
+  if (typeof window !== "undefined" && error.response?.status === 401 && window.location.pathname.startsWith("/dashboard")) {
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
+    for (const key of Object.keys(sessionStorage)) if (key.startsWith("cme-feedback:")) sessionStorage.removeItem(key);
+    window.location.replace(`/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+  }
+  return Promise.reject(error);
+});
 export default api;

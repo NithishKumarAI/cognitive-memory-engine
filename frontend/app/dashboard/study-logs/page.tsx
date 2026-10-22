@@ -1,6 +1,6 @@
 "use client";
+import { errorMessage } from "@/lib/errors";
 
-import { AxiosError } from "axios";
 import { Edit, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -46,6 +46,7 @@ export default function StudyLogsPage() {
   }, []);
 
   async function handleSubmit(payload: StudyLogPayload) {
+    try {
     if (formMode === "edit" && selectedLog) {
       await updateStudyLog(selectedLog.id, payload);
     } else {
@@ -54,6 +55,7 @@ export default function StudyLogsPage() {
 
     closeForm();
     await loadData();
+    } catch (error) { setError(getErrorMessage(error, "Unable to save. Check your input and retry.")); }
   }
 
   async function handleDelete(log: StudyLog) {
@@ -180,5 +182,5 @@ export default function StudyLogsPage() {
 }
 
 function getErrorMessage(error: unknown, fallback: string) {
-  return error instanceof AxiosError ? error.response?.data?.detail ?? fallback : fallback;
+  return errorMessage(error, fallback);
 }

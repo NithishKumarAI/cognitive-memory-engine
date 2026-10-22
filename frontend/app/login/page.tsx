@@ -1,5 +1,6 @@
 "use client";
 
+import { branding } from "@/lib/branding";
 import Link from "next/link";
 import { AxiosError } from "axios";
 import { Brain, Loader2 } from "lucide-react";
@@ -52,7 +53,7 @@ export default function LoginPage() {
           </div>
           <div>
             <CardTitle>Sign in</CardTitle>
-            <CardDescription>Access your Cognitive Memory Engine workspace.</CardDescription>
+            <CardDescription>Welcome back to {branding.name}.</CardDescription>
           </div>
         </CardHeader>
         <CardContent>

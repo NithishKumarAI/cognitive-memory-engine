@@ -1,5 +1,7 @@
 "use client";
 
+import { safeRedirect } from "@/lib/routes";
+import { AxiosError } from "axios";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -12,7 +14,7 @@ import {
 } from "@/services/auth";
 import type { LoginPayload, RegisterPayload, User } from "@/types/auth";
 
-type AuthStatus = "loading" | "authenticated" | "unauthenticated";
+type AuthStatus = "loading" | "authenticated" | "unauthenticated" | "error";
 
 export function useAuth() {
   const router = useRouter();
@@ -34,7 +36,8 @@ export function useAuth() {
       setUser(currentUser);
       setStatus("authenticated");
       return currentUser;
-    } catch {
+    } catch (error) {
+      if (!(error instanceof AxiosError) || error.response?.status !== 401) { setStatus("error"); return null; }
       clearToken();
       setUser(null);
       setStatus("unauthenticated");
@@ -51,8 +54,9 @@ export function useAuth() {
   const login = useCallback(
     async (payload: LoginPayload, redirectTo = "/dashboard") => {
       await loginRequest(payload);
-      await refreshUser();
-      router.replace(redirectTo);
+      const verified = await refreshUser();
+      if (!verified) throw new Error("Unable to verify session");
+      router.replace(safeRedirect(redirectTo));
     },
     [refreshUser, router],
   );
@@ -67,6 +71,7 @@ export function useAuth() {
 
   const logout = useCallback(() => {
     clearToken();
+    for (const key of Object.keys(sessionStorage)) if (key.startsWith("cme-feedback:")) sessionStorage.removeItem(key);
     setUser(null);
     setStatus("unauthenticated");
     router.replace("/login");

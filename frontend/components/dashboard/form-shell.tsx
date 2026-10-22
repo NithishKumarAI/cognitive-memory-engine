@@ -1,3 +1,5 @@
+"use client";
+import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -11,8 +13,10 @@ type FormShellProps = {
 };
 
 export function FormShell({ children, description, onCancel, title }: FormShellProps) {
+  const container = useRef<HTMLDivElement>(null);
+  useEffect(() => { container.current?.querySelector<HTMLInputElement>("input,textarea,select")?.focus(); }, []);
   return (
-    <Card>
+    <Card ref={container} role="region" aria-label={title}>
       <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
         <div className="space-y-1.5">
           <CardTitle>{title}</CardTitle>
