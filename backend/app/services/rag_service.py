@@ -1,12 +1,15 @@
 import re
 from math import isfinite
+from types import SimpleNamespace
 from datetime import datetime, timezone
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.crud.retrieval import search_memories_by_embedding
 from app.services.embedding_service import generate_embedding
-from app.services.context_service import context_service
+from app.models.memory import Memory
+from app.models.memory_embedding import MemoryEmbedding
+from app.services.observation_retrieval import search_confirmed_observations, recall_terms, literal_word_pattern
 from app.services.llm_service import llm_service
 from app.crud.conversation import create_conversation
 from app.models.learning_capture import LearningCapture, LearningObservation
@@ -16,6 +19,18 @@ from app.services.continuity_service import (
     generate_evidence_recommendations,
     normalize_topic,
 )
+
+
+MAX_MEMORY_SOURCES = 5
+MAX_CONTEXT_CHARS = 16000
+MAX_PROMPT_CHARS = 24000
+MAX_QUESTION_CHARS = 4000
+
+
+def excerpt(value, limit):
+    value = str(value or "")
+    marker = "… [excerpt truncated]"
+    return value if len(value) <= limit else value[:limit - len(marker)] + marker
 
 
 class RAGService:
@@ -43,7 +58,9 @@ class RAGService:
 
         # Guard against mock DBs in unit tests
         try:
-            checkpoints = get_resumable_checkpoints(db, user_id, limit=20)
+            kind = "difficulty" if is_diff_q else "open_question" if is_open_q else "intended_next_step" if is_next_q else None
+            checkpoints = get_resumable_checkpoints(db, user_id, limit=5,
+                topic_terms=recall_terms(q), observation_type=kind)
         except Exception:
             return None
 
@@ -58,7 +75,7 @@ class RAGService:
 
             if not matched_cp:
                 return {
-                    "answer": "You have not recorded any confirmed learning updates yet.",
+                    "answer": "No confirmed learning checkpoint matches this question." if recall_terms(q) else "You have not recorded any confirmed learning updates yet.",
                     "sources": [],
                 }
 
@@ -94,7 +111,7 @@ class RAGService:
 
             if not unresolved:
                 return {
-                    "answer": "You currently have no unresolved difficulties recorded in your confirmed learning updates.",
+                    "answer": "No unresolved difficulties match this question." if recall_terms(q) else "You currently have no unresolved difficulties recorded in your confirmed learning updates.",
                     "sources": [],
                 }
 
@@ -139,6 +156,9 @@ class RAGService:
                 answer = "Based on your confirmed intended next steps, you planned to:\n" + "\n".join(items_text)
                 return {"answer": answer, "sources": sources}
 
+            if recall_terms(q):
+                return {"answer": "You have no pending next steps recorded for this topic.", "sources": []}
+
             try:
                 recs = generate_evidence_recommendations(db, user_id, limit=1)
             except Exception:
@@ -173,7 +193,7 @@ class RAGService:
 
             if not unresolved_q:
                 return {
-                    "answer": "You have no open questions recorded in your confirmed learning updates.",
+                    "answer": "No open questions match this question." if recall_terms(q) else "You have no open questions recorded in your confirmed learning updates.",
                     "sources": [],
                 }
 
@@ -203,8 +223,9 @@ class RAGService:
                     .filter(
                         LearningObservation.user_id == user_id,
                         LearningCapture.status == "confirmed",
+                        LearningCapture.user_id == user_id,
                         LearningObservation.observation_type == "understood_self_report",
-                        func.lower(LearningObservation.topic).contains(topic_query),
+                        LearningObservation.topic.regexp_match(literal_word_pattern(topic_query)),
                     )
                     .order_by(LearningObservation.created_at.desc())
                     .first()
@@ -245,6 +266,7 @@ class RAGService:
         question: str,
         top_k: int = 5
     ):
+        question = question[:MAX_QUESTION_CHARS]
         # 1. Deterministic continuity handler for direct continuity queries
         deterministic = self._match_deterministic_continuity(db, user_id, question)
         if deterministic is not None:
@@ -260,63 +282,36 @@ class RAGService:
             )
             return deterministic
 
-        # 2. General RAG retrieval: check memory embeddings
-        query_embedding = generate_embedding(question)
-
+        # Embeddings stay optional: no model initialization when the owner has no indexed memories.
+        retrieval_results = []
         try:
-            retrieval_results = search_memories_by_embedding(
-                db=db,
-                user_id=user_id,
-                query_embedding=query_embedding,
-                limit=top_k
-            )
+            indexed = db.query(MemoryEmbedding.id).join(Memory, Memory.id == MemoryEmbedding.memory_id).filter(
+                Memory.user_id == user_id).first()
+            if indexed:
+                query_embedding = generate_embedding(question)
+                retrieval_results = search_memories_by_embedding(db=db, user_id=user_id,
+                    query_embedding=query_embedding, limit=min(top_k, MAX_MEMORY_SOURCES), body_limit=2000)
         except Exception:
             retrieval_results = []
-
-        # Nearest does not imply relevant; reject distant/nonfinite candidates.
-        retrieval_results = [(memory, distance) for memory, distance in retrieval_results
+        retrieval_results = [(SimpleNamespace(id=memory.id, title=excerpt(memory.title, 200),
+                              category=excerpt(memory.category, 80), content=excerpt(memory.content, 2000)), float(distance))
+                             for memory, distance in retrieval_results[:MAX_MEMORY_SOURCES]
                              if isfinite(float(distance)) and float(distance) <= 0.5]
-        memories = [memory for memory, _distance in retrieval_results]
-
-        # 3. Retrieve confirmed learning observations matching keywords
-        keywords = [w for w in re.split(r"\W+", question.lower()) if len(w) > 3]
-        matched_observations = []
-        if keywords:
-            try:
-                obs_query = (
-                    db.query(LearningObservation)
-                    .join(LearningCapture, LearningObservation.capture_id == LearningCapture.id)
-                    .filter(
-                        LearningObservation.user_id == user_id,
-                        LearningCapture.status == "confirmed",
-                    )
-                )
-                candidate_obs = obs_query.order_by(LearningObservation.id.desc()).limit(30).all()
-                if isinstance(candidate_obs, (list, tuple)):
-                    for obs in candidate_obs:
-                        obs_text = f"{obs.topic} {obs.content}".lower()
-                        if any(kw in obs_text for kw in keywords):
-                            matched_observations.append(obs)
-                            if len(matched_observations) >= 5:
-                                break
-            except Exception:
+        memories = [memory for memory, _ in retrieval_results]
+        try:
+            matched_observations = search_confirmed_observations(db, user_id, question)
+            if not isinstance(matched_observations, (list, tuple)):
                 matched_observations = []
+        except Exception:
+            matched_observations = []
 
-        context_parts = []
-        if memories:
-            memory_context = context_service.build_memory_context(memories)
-            context_parts.append(f"MEMORIES:\n\n{memory_context}")
-
-        if matched_observations:
-            obs_lines = []
-            for obs in matched_observations:
-                obs_lines.append(
-                    f"[Observation {obs.id}] (Capture #{obs.capture_id}, Topic: {obs.topic}, Type: {obs.observation_type}):\n"
-                    f"{obs.content}\nEvidence excerpt: {obs.evidence}"
-                )
-            context_parts.append("CONFIRMED LEARNING OBSERVATIONS:\n\n" + "\n\n".join(obs_lines))
-
-        full_context = "\n\n".join(context_parts)
+        records = [f"Memory {memory.id}\nTitle: {memory.title}\nCategory: {memory.category}\nContent:\n{memory.content}"
+                   for memory in memories]
+        records.extend(f"[Observation {obs.id}] (Capture #{obs.capture_id}, Topic: {obs.topic}, Type: {obs.observation_type}):\n"
+                       f"{obs.content}\nEvidence excerpt: {obs.evidence}" for obs in matched_observations)
+        # Give each returned source a complete identifier/header and a bounded excerpt.
+        per_record = MAX_CONTEXT_CHARS // max(1, len(records)) - 2
+        full_context = "\n\n".join(excerpt(record, per_record) for record in records)
 
         prompt = f"""
 You are a personal cognitive memory assistant.

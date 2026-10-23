@@ -254,3 +254,32 @@ def test_phase3_head_action_rows_survive_forward_digest_migration(postgres_engin
     with postgres_engine.connect() as connection:
         row = connection.execute(text("SELECT status,notes,request_digest FROM learning_actions")).one()
         assert row.status == "completed" and row.notes == "Keep this feedback" and row.request_digest is None
+
+
+def test_postgres_old_observation_recall_preserves_vector_retrieval_and_bounded_projections(postgres_db, monkeypatch):
+    from test_historical_recall import seed_observation, seed_noise
+    from app.services import rag_service as rag
+    from app.services.observation_retrieval import search_confirmed_observations
+    from app.models.memory import Memory
+    from unittest.mock import Mock
+    db = postgres_db; users = seed_users(db); uid = users[0].id
+    capture, observation = seed_observation(db, uid, content="Python decorators retain closures")
+    cid, oid = capture.id, observation.id
+    seed_noise(db, uid, 140)
+    for status in ["pending", "failed", "discarded"]: seed_observation(db, uid, status=status, age=0)
+    seed_observation(db, users[1].id, age=0); db.commit()
+    assert [row.id for row in search_confirmed_observations(db, uid, "Python decorators")] == [oid]
+    memory = Memory(user_id=uid, title="Python memory", content="Python " + "x"*50000, category="synthetic")
+    db.add(memory); db.flush()
+    db.add(MemoryEmbedding(memory_id=memory.id, model_name="synthetic", embedding=[1.0]+[0.0]*767)); db.commit()
+    mid = memory.id
+    projected = search_memories_by_embedding(db, uid, [1.0]+[0.0]*767, body_limit=2000)
+    assert projected[0][0].id == mid and len(projected[0][0].content) == 2000
+    monkeypatch.setattr(rag, "generate_embedding", Mock(return_value=[1.0]+[0.0]*767))
+    llm = Mock(return_value=f"Review [Observation {oid}] and [Memory {mid}].")
+    monkeypatch.setattr(rag.llm_service, "generate_response", llm)
+    result = rag.rag_service.generate_answer(db, uid, "Explain Python decorators")
+    assert {source["memory_id"] for source in result["sources"] if source["source_type"] == "memory"} == {mid}
+    assert {source["observation_id"] for source in result["sources"] if source["source_type"] == "observation"} == {oid}
+    assert next(source for source in result["sources"] if source["source_type"] == "observation")["capture_id"] == cid
+    assert len(llm.call_args.args[0]) <= rag.MAX_PROMPT_CHARS

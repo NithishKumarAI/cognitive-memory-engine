@@ -11,6 +11,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.models.learning_capture import LearningCapture, LearningObservation
+from app.services.observation_retrieval import topic_matches_terms
 from app.models.learning_track import LearningTrack
 from app.models.study_log import StudyLog
 from app.models.learning_action import LearningAction
@@ -190,7 +191,8 @@ def update_user_action(db: Session, user_id: int, action_id: int, payload: Learn
 
 
 def get_resumable_checkpoints(db: Session, user_id: int, track_id: int | None = None,
-                             limit: int | None = 20, _summary_only: bool = False) -> list[ResumableCheckpointResponse]:
+                             limit: int | None = 20, _summary_only: bool = False,
+                             topic_terms: tuple[str, ...] = (), observation_type: str | None = None) -> list[ResumableCheckpointResponse]:
     """Scan narrow metadata for honest history-wide state; hydrate only selected evidence.
 
     A recent-capture cutoff would silently lose old unresolved questions. Instead
@@ -238,6 +240,13 @@ def get_resumable_checkpoints(db: Session, user_id: int, track_id: int | None = 
     for topic, assigned, created in log_query:
         if created:
             group(topic, assigned, aware(created))
+    # Apply recall eligibility before a display cap; old unresolved topics remain discoverable.
+    if topic_terms:
+        groups = {key: item for key, item in groups.items() if topic_matches_terms(key[1], topic_terms)}
+    if observation_type:
+        closed = info["resolved_obs_ids"] | info["dismissed_obs_ids"]
+        groups = {key: item for key, item in groups.items() if any(
+            obs.observation_type == observation_type and obs.id not in closed for obs in item["observations"])}
     selected = sorted(groups.items(), key=lambda pair: (-pair[1]["stamp"].timestamp(), pair[0][1], pair[0][0] or 0))
     if limit is not None:
         selected = selected[:limit]
@@ -344,18 +353,18 @@ def generate_evidence_recommendations(
     user_id: int,
     limit: int = 10,
 ) -> list[EvidenceRecommendationResponse]:
-    checkpoints = get_resumable_checkpoints(db, user_id, limit=50)
+    checkpoints = get_resumable_checkpoints(db, user_id, limit=None, _summary_only=True)
     actions_info = get_user_actions(db, user_id)
     completed_rec_ids = actions_info["completed_rec_ids"]
     dismissed_rec_ids = actions_info["dismissed_rec_ids"]
 
     recommendations: list[EvidenceRecommendationResponse] = []
-    seen_topic_types: set[tuple[str, str]] = set()
+    seen_topic_types: set[tuple[str, int | None, str]] = set()
 
     def add_rec(rec: EvidenceRecommendationResponse, category_rank: int):
         if rec.id in completed_rec_ids or rec.id in dismissed_rec_ids:
             return
-        key = (rec.type, rec.topic.casefold())
+        key = (rec.type, rec.learning_track_id, normalize_topic(rec.topic))
         if key in seen_topic_types:
             return
         seen_topic_types.add(key)
@@ -523,7 +532,25 @@ def generate_evidence_recommendations(
         )
     )
 
-    return [item[0] for item in recommendations[:limit]]
+    selected = [item[0] for item in recommendations[:limit]]
+    # Rank metadata using the existing policy, then hydrate only returned supporting records.
+    ids = {rec.source_observation_id for rec in selected if rec.source_observation_id}
+    bodies = {row.id: row for row in db.query(LearningObservation.id,
+        func.substr(LearningObservation.content, 1, 2000).label("content"),
+        func.substr(LearningObservation.evidence, 1, 400).label("evidence")).filter(
+        LearningObservation.user_id == user_id, LearningObservation.id.in_(ids))} if ids else {}
+    cap_ids = {rec.source_capture_id for rec in selected if rec.source_capture_id and not rec.source_observation_id}
+    originals = dict(db.query(LearningCapture.id, func.substr(LearningCapture.original_text, 1, 160)).filter(
+        LearningCapture.user_id == user_id, LearningCapture.status == "confirmed", LearningCapture.id.in_(cap_ids))) if cap_ids else {}
+    for rec in selected:
+        body = bodies.get(rec.source_observation_id)
+        if body:
+            if rec.type in ("intended_next_step", "unresolved_difficulty", "open_question"):
+                rec.action += body.content
+            rec.evidence = body.evidence if rec.type in ("intended_next_step", "unresolved_difficulty", "open_question") else body.content
+        elif rec.source_capture_id:
+            rec.evidence = originals.get(rec.source_capture_id)
+    return selected
 
 
 def calculate_timezone_streak(db: Session, user_id: int, target_tz: zoneinfo.ZoneInfo) -> int:

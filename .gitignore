@@ -224,3 +224,6 @@ frontend/playwright-report/
 
 # Local V1 hardening scratch output
 .v1-*
+
+# Local final-acceptance scratch output
+.acceptance-*

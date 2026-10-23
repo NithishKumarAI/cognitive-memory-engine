@@ -1,0 +1,13 @@
+{
+  "status": "LOCAL RUNTIME PASS",
+  "verification": "New Python service process after actual disposable PostgreSQL stop/start",
+  "confirmed_captures": 141,
+  "newer_unrelated_observations": 140,
+  "original_preserved": true,
+  "correction_preserved": true,
+  "embeddings": 0,
+  "historical_recall": true,
+  "other_owner_sources": 0,
+  "live_ai": false,
+  "model_downloads": false
+}
