@@ -1,5 +1,6 @@
 "use client";
 
+import { AccountCreatedError } from "@/lib/auth-feedback";
 import { safeRedirect } from "@/lib/routes";
 import { AxiosError } from "axios";
 import { useCallback, useEffect, useState } from "react";
@@ -64,7 +65,14 @@ export function useAuth() {
   const register = useCallback(
     async (payload: RegisterPayload, redirectTo = "/dashboard") => {
       await registerRequest(payload);
-      await login(payload, redirectTo);
+      try {
+        await login(payload, redirectTo);
+      } catch {
+        clearToken();
+        setUser(null);
+        setStatus("unauthenticated");
+        throw new AccountCreatedError();
+      }
     },
     [login],
   );
