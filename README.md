@@ -1,81 +1,155 @@
-# Cognitive Memory Engine
+# LearnTrack
 
-A personal learning workspace for capturing reflections, reviewing AI interpretations and resuming learning from saved evidence. Phases 1–4 are complete. V1 hardening is verified locally as recorded in `V1_RELEASE_HARDENING_REPORT.md`; public release remains gated. No hardening deployment has been performed. Older demo deployments and screenshots are historical and do not establish the current release state.
+**Your AI learning continuity companion.** Remember what you learn. Pick up where you left off.
 
-## What you can do
+[![Product verification](https://github.com/NithishKumarAI/cognitive-memory-engine/actions/workflows/phase1-ci.yml/badge.svg?branch=main)](https://github.com/NithishKumarAI/cognitive-memory-engine/actions/workflows/phase1-ci.yml)
 
-- Capture text or record audio in a supported secure browser. Audio is sent for cloud transcription only after explicit consent; the transcript stays editable before analysis.
-- Review structured AI suggestions (learned, self-reported understanding, difficulties, open questions and intended next steps), correct them, then explicitly confirm. Analysis alone does not establish confirmed learning or mastery.
-- Organize learning paths, study logs and manual memories. Confirmed captures and observations preserve their source; creating a searchable memory is optional.
-- Resume from checkpoints, inspect exact supporting captures/observations, and record completion, resolution or dismissal with retry-safe feedback.
-- Search your owned paths, logs, memories, captures and observations. Review saved capture history and earlier assistant conversations.
-- Ask grounded questions over owned saved history. Historical keyword recall searches confirmed observations across all ages, including when no optional memories/embeddings were created. Live answers separate referenced evidence from retrieved context; older answers do not pretend to have persisted citations.
-- Explore recorded time, activity patterns and confirmed-learning counts. Activity is not a mastery score. Light, dark and system appearance work with desktop and mobile navigation.
+[Source](https://github.com/NithishKumarAI/cognitive-memory-engine) · [Walkthrough](DEMO_GUIDE.md) · [Screenshots](frontend/public/showcase) · **Live application: Current V1 deployment pending verification.**
 
-## Architecture
+## Why it exists
 
-Next.js App Router / React / TypeScript / Tailwind / Recharts talks to FastAPI through a bearer-token Axios client. SQLAlchemy and Alembic manage PostgreSQL with pgvector. Gemini provides structured extraction, transcription and contextual answers; SentenceTransformers supplies 768-dimensional embeddings. Confirmed evidence and deterministic continuity logic remain separate from model suggestions. The existing JWT/localStorage architecture is preserved.
+A study note often records what happened without helping you return. LearnTrack connects reviewed reflections, unresolved questions and intended next steps to their original evidence, so a later session can start with context.
 
-`Text or consented audio → editable text → AI draft → user review → confirmed capture + observations → optional memory/embedding → continuity, retrieval and recommendations`
+The core differentiator is evidence-based learning continuity: checkpoints and recommendations trace back to confirmed records. The assistant supports this workflow; activity counts and self-reported understanding do not establish mastery.
 
-Deleting a learning path detaches historical records instead of erasing the history. Checkpoint summaries bound displayed evidence bodies while retaining global unresolved counts. Search returns at most 30 results, chat history pages at most 50, capture history pages at most 50; the interface requests smaller pages.
+## A look inside
 
-## Local development
+Actual screenshots from existing browser tests, using synthetic Avery/Python learning records. They predate the LearnTrack rename and display the earlier name. Original [test evidence](test-artifacts/final-acceptance/screenshots) is preserved.
 
-Use Python 3.12, Node 24 and a **development-only** PostgreSQL database with pgvector. Never use production credentials for local tests. Configure a role and database according to your local PostgreSQL installation; install `vector` with an authorized database role.
+**Resume from a checkpoint**
 
-```powershell
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r backend/requirements.txt
-Copy-Item backend/.env.example backend/.env
-Copy-Item frontend/.env.example frontend/.env.local
+![Synthetic dashboard with a decorators checkpoint](frontend/public/showcase/home.png)
+
+**Inspect the evidence behind a next action**
+
+![Synthetic recommendations with source links](frontend/public/showcase/recommendations.png)
+
+**Understand recorded activity without invented mastery scores**
+
+![Synthetic insights with logged time and confirmed reflections](frontend/public/showcase/analytics.png)
+
+## What works
+
+- Text capture and consented voice transcription, with an editable transcript.
+- Structured AI drafts of topics, difficulties, questions and intentions; explicit human correction and confirmation before saving learning observations.
+- Learning paths, study logs, saved captures and optional searchable memories.
+- Resume checkpoints and deterministic recommendations with exact supporting-record links and persisted completion/resolution/dismissal feedback.
+- Owner-scoped search and grounded assistant responses with cited saved evidence. Confirmed observations can be recalled without optional embeddings; keyword recall is not guaranteed paraphrase search.
+- Recorded study time, activity patterns and confirmed-reflection counts; responsive navigation and light/dark/system appearance.
+- A public `/` overview that requires no account; the workspace stays authenticated under `/dashboard`.
+
+**Workflow:** text or consented audio → editable text → AI draft → user review → confirmed capture and observations → optional searchable memory → checkpoints, recommendations and grounded recall.
+
+## Stack and architecture
+
+Next.js App Router, React, TypeScript, Tailwind and Recharts; FastAPI, SQLAlchemy and Alembic; PostgreSQL with pgvector; Gemini for extraction/transcription/answers and SentenceTransformers for 768-dimensional embeddings.
+
+```mermaid
+flowchart LR
+    Visitor[Public overview] --> UI[Next.js workspace]
+    UI -->|Bearer token| API[FastAPI / owner checks]
+    API --> DB[(PostgreSQL + pgvector)]
+    API -->|Relevant text / consented audio| Gemini[Gemini]
+    API --> Embeddings[Local SentenceTransformers]
+    Embeddings --> DB
+    DB --> Continuity[Confirmed evidence / continuity logic]
+    Continuity --> API
 ```
 
-Replace placeholders locally; never commit real secrets. Backend configuration: `DATABASE_URL`, `SECRET_KEY`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `GEMINI_TIMEOUT_MS`, `ACCESS_TOKEN_EXPIRE_MINUTES`, `FRONTEND_ORIGINS`, `AI_ENABLED` and `REGISTRATION_ENABLED`. The public `NEXT_PUBLIC_API_URL` is compiled into the frontend at build time. An embedding model download may be required on first real use; provision network access/model caching deliberately.
+AI suggestions remain separate from confirmed evidence. PostgreSQL persists captures, observations, optional memories, feedback and conversations. Existing API routes, database names, environment names and browser authentication keys are retained.
 
-After reviewing migrations and confirming the target is your disposable development database:
+## Run locally on Windows
+
+Use **Python 3.12**, **Node 24**, and a dedicated development PostgreSQL database with the **pgvector extension installed on the server**. Start PowerShell at the repository root. Create a development role/database through your PostgreSQL administrator; the example assumes `cme_dev` exists on loopback. Grant only the development permissions needed to migrate that database. Never use a production URL.
 
 ```powershell
+py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r backend/requirements.txt
+if (-not (Test-Path backend/.env)) { Copy-Item backend/.env.example backend/.env }
+if (-not (Test-Path frontend/.env.local)) { Copy-Item frontend/.env.example frontend/.env.local }
+```
+
+Edit those local files: set a strong `SECRET_KEY`, a development-only `DATABASE_URL`, the backend `FRONTEND_ORIGINS`, and frontend `NEXT_PUBLIC_API_URL=http://127.0.0.1:8000`. For optional live AI, supply your own Gemini key and check cost/retention controls first. `AI_ENABLED=false` allows a provider-free inspection but disables Gemini extraction/transcription/answers; it does not prevent embedding downloads. Do not commit secrets.
+
+**Alembic requires an explicit `ALEMBIC_DATABASE_URL` in addition to the application's `DATABASE_URL`.** Set both in the current PowerShell session to the same dedicated development target; do not rely on the app's `.env` being loaded by Alembic. Replace `replace-me` with your local development password (URL-encode special characters).
+
+```powershell
+$env:DATABASE_URL='postgresql+psycopg://cme_dev:replace-me@127.0.0.1:5432/cme_dev'
+$env:ALEMBIC_DATABASE_URL=$env:DATABASE_URL
+# Only your dedicated development database; an authorized role provisions vector.
+psql -h 127.0.0.1 -p 5432 -U cme_dev -d cme_dev -c 'CREATE EXTENSION IF NOT EXISTS vector;'
+if ($LASTEXITCODE -ne 0) { throw 'Provision pgvector before migrating.' }
 Set-Location backend
 ..\.venv\Scripts\python.exe -m alembic upgrade head
-..\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
+if ($LASTEXITCODE -ne 0) { throw 'Migration failed; inspect the error before starting.' }
+..\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-In another terminal, `cd frontend`, `npm ci`, `npm run dev`. Open `http://localhost:3000`; database-aware health is `http://127.0.0.1:8000/health`. For a production frontend build locally, set `ALLOW_LOCAL_API_ORIGIN=1` only when explicitly using a loopback test API, then use `npm run build` and `npm start`. `PORT` controls the production server (default 3000); the backend container defaults to 8000. Release builds require an explicit HTTPS `NEXT_PUBLIC_API_URL` and reject localhost without the local-test opt-in. A browser-reachable HTTPS backend URL is required for a hosted frontend.
+If the role cannot provision extensions, ask the local database administrator to enable `vector` in this development database. Do not reset tables or bypass migrations.
 
-## Isolated verification
+In a second PowerShell terminal at the repository root:
 
-The test suite never falls back to the configured application database. Ordinary tests use fresh in-memory stores and mocked AI; PostgreSQL tests use explicitly opted-in, randomly named schemas.
+```powershell
+Set-Location frontend
+npm ci
+$env:NEXT_PUBLIC_API_URL='http://127.0.0.1:8000'
+npm run dev
+```
 
-Create a **new disposable PostgreSQL instance** with pgvector and a database named `cme_phase1_test` on loopback. The CI workflow uses a dedicated `pgvector/pgvector:pg16` service with synthetic credentials. On Windows an independent `initdb` directory and unused loopback port also work; do not reuse a production or personal database just because its name matches. The test role must be able to create schemas and provision pgvector in this disposable instance.
+Open `http://localhost:3000` for the public overview; `/register` and `/login` open your workspace. Check `http://127.0.0.1:8000/health` and API docs at `/docs`. First real embedding use may download model weights; plan the cache/network deliberately. A hosted frontend needs a browser-reachable HTTPS API and matching CORS origins.
+
+For a production-mode frontend **on loopback only**, set `$env:ALLOW_LOCAL_API_ORIGIN='1'`, then `npm run build` and `npm start` from `frontend`. Do not enable that opt-in for hosted builds. `NEXT_PUBLIC_API_URL` is embedded at build time; hosted release builds require HTTPS. `PORT` controls the production frontend server (default 3000).
+
+## Manual testing
+
+Follow [DEMO_GUIDE.md](DEMO_GUIDE.md): inspect the public page without signing in, create a synthetic account locally, capture and correct a note, confirm it, inspect a checkpoint/source, reload and record feedback. Live provider and microphone checks are optional, separately authorized checks, not established by mocked browser tests.
+
+## Automated verification and CI
+
+Use a **new disposable PostgreSQL instance** with pgvector and a database named `cme_phase1_test` on loopback. Test URLs never fall back to application configuration; PostgreSQL tests create random schemas. The role needs schema and extension provisioning permissions in this disposable instance. `.github/workflows/phase1-ci.yml` uses an isolated `pgvector/pgvector:pg16` service; CI verifies and does not deploy. The badge links to that workflow's current main status, not a claim that uncommitted edits ran remotely.
+
+From the repository root, substituting your disposable instance's port and synthetic credentials:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -r backend/requirements-test.txt
-$env:PHASE1_TEST_DATABASE_URL='postgresql+psycopg://phase1:test-only@127.0.0.1:5432/cme_phase1_test'
+$env:PHASE1_TEST_DATABASE_URL='postgresql+psycopg://phase1:test-only@127.0.0.1:55439/cme_phase1_test'
 Set-Location backend
 ..\.venv\Scripts\python.exe -m pytest -q
 ```
 
-Without the opt-in URL, PostgreSQL tests skip: that is not proof of PostgreSQL correctness. Browser instructions are in [frontend/README.md](frontend/README.md); they use real disposable PostgreSQL, synthetic accounts and mocked AI. No paid provider call, physical microphone or live deployment is verified by these tests.
+Without this opt-in URL, PostgreSQL checks skip; that does not verify PostgreSQL. In another terminal at the repository root, against the same disposable instance, after backend tests finish:
 
 ```powershell
-cd frontend
+Set-Location frontend
 npm ci
+npm run test:release
 npm run lint
+$env:NEXT_PUBLIC_API_URL='http://127.0.0.1:8100'
+$env:ALLOW_LOCAL_API_ORIGIN='1'
+$env:NEXT_TELEMETRY_DISABLED='1'
 npm run build
+npx playwright install chromium
+$env:E2E_PYTHON=(Resolve-Path ../.venv/Scripts/python.exe).Path
+$env:PHASE4_E2E_DATABASE_URL='postgresql+psycopg://phase1:test-only@127.0.0.1:55439/cme_phase1_test'
+$env:E2E_PRODUCTION='1'
+$env:E2E_ARTIFACT_DIR='../test-artifacts/learntrack'
 npm run test:e2e
 ```
 
-See [V1_RELEASE_HARDENING_REPORT.md](V1_RELEASE_HARDENING_REPORT.md) for current local results and dependency dispositions, [DEPLOYMENT_PLAN.md](DEPLOYMENT_PLAN.md) for the unexecuted production plan, [LIVE_ACCEPTANCE_GUIDE.md](LIVE_ACCEPTANCE_GUIDE.md) for required human/provider/hardware checks, and [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) for release gates. The Phase 4 report remains historical evidence. Baseline GitHub Actions run [39801260334](https://github.com/NithishKumarAI/cognitive-memory-engine/actions/runs/39801260334) has verified successful backend/frontend jobs; these uncommitted hardening edits have not run on GitHub. CI definitions verify only; they do not deploy. The June 2026 `v1.0.0` GitHub release must not be represented as containing Phase 4 or these changes.
+Ports 3100 and 8100 must be free; the browser harness starts both services with synthetic accounts and mocked AI. It does not call paid Gemini or verify a physical microphone. See [frontend testing notes](frontend/README.md) and the [portfolio polish report](LEARNTRACK_PORTFOLIO_POLISH_REPORT.md) for local results.
 
-## Privacy and limitations
+## Live status, privacy and limits
 
-Reflections, transcripts and retrieved context can be sent to Gemini during relevant operations. Voice processing requires consent; raw audio is not a saved learning record. Confirmed text, observations, optional memories and conversations persist in PostgreSQL. Configure provider retention, database backups, deletion policy and redacted monitoring for your environment. Do not put personal reflections, tokens, audio or provider responses into logs.
+**Current V1 deployment pending verification.** The repository homepage's historical Google Cloud deployment and older GitHub release do not establish that LearnTrack V1 is deployed. No current live application URL is advertised here. Use source, screenshots and the local walkthrough until an exact deployed revision passes acceptance.
 
-JWTs remain in localStorage: injected script could read them. Logout clears local credentials but does not revoke an issued token server-side. Owner checks and no-store responses protect API access; they do not replace HTTPS or a reviewed session/CSP design. Search is bounded literal matching, not a full-text engine. Continuity still scans narrow owner metadata, so it is not constant-memory at unlimited history sizes. Semantic relevance thresholds need calibration against a real authorized corpus. `AI_ENABLED=false` blocks Gemini provider-client construction and `REGISTRATION_ENABLED=false` closes new account creation after the configured revision is running. Defaults remain true for compatibility; configure both false before an unverified release. These switches do not disable local embeddings/model downloads, rate-limit existing users, revoke tokens or cancel in-flight calls. The existing `UsageLimit` table is not an enforced quota: there is no reset/increment path. Gateway/distributed limits and provider cost controls remain release requirements. Dependency advisories, real provider/microphone checks and Docker/cloud verification are recorded explicitly in the report.
+Relevant reflections, consented audio and retrieved context can be sent to Gemini. Confirmed records and conversations persist in PostgreSQL; raw audio is not a saved learning record. Review provider retention, deletion/backups and cost controls before real use. Never log personal notes, tokens or audio.
 
-## Historical recall acceptance
+JWTs remain in localStorage; injected scripts can expose them, and logout does not revoke an already issued token. Owner checks do not replace HTTPS, a reviewed session/CSP design or operational limits. `AI_ENABLED=false` blocks Gemini; `REGISTRATION_ENABLED=false` closes new accounts. Both default true for compatibility and neither provides quotas or distributed rate limits. The existing usage-limit table does not enforce spending limits. Search and displayed results are bounded, while owner-history metadata work can grow with history. No commercial usage, benchmark, mastery or accuracy claims are made.
 
-General assistant observation retrieval filters and ranks in SQL before the five-record limit, using up to eight distinct explicit terms and whole-term matches in topic/content. Coverage and topic relevance precede recency. It returns up to five projected observations plus five existing pgvector memory results; shared excerpts fit 16,000 characters and the API question remains capped at 4,000. The current template yields a prompt below 24,000 characters. Observation-only histories skip embedding initialization. Optional vector search remains available; this is not a new semantic index or a guarantee of paraphrase/stemming recall.
+Dependency advisories, Docker/image verification, live Gemini, microphone/HTTPS acceptance and production operating controls remain release gates; see [release checklist](RELEASE_CHECKLIST.md), [live acceptance guide](LIVE_ACCEPTANCE_GUIDE.md) and [unexecuted deployment plan](DEPLOYMENT_PLAN.md).
 
-Old unresolved topics are eligible before deterministic recall/display caps, and recommendations rank all topic metadata before loading only selected evidence. Track-scoped topic identities are preserved. Display lists remain intentionally bounded. Database filtering can still scan an owner's text, and continuity metadata grows with history; no constant-time or production throughput claim is made. See [V1_FINAL_ACCEPTANCE_REPORT.md](V1_FINAL_ACCEPTANCE_REPORT.md) for current verification and remaining public-release gates. Existing phase/hardening reports remain historical.
+## Project history
+
+**Previously developed as Cognitive Memory Engine.** Four development phases, V1 hardening and historical-recall acceptance are documented in the preserved [Phase 4 report](PHASE4_FINAL_PRODUCT_REPORT.md), [hardening report](V1_RELEASE_HARDENING_REPORT.md) and [final acceptance report](V1_FINAL_ACCEPTANCE_REPORT.md). This polish pass changes presentation, not authentication, AI algorithms or the database schema.
+
+LearnTrack name uniqueness has not been confirmed. No trademark or domain ownership is claimed. [Portfolio/resume copy](PORTFOLIO_COPY.md) is available for factual reuse.

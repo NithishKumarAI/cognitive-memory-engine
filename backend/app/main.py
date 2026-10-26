@@ -17,7 +17,8 @@ from app.routes.learning import router as learning_router
 from app.routes.workspace import router as workspace_router
 
 app = FastAPI(
-    title="Cognitive Memory Engine",
+    title="LearnTrack",
+    description="Your AI learning continuity companion.",
     version="1.0.0"
 )
 app.add_middleware(
@@ -42,7 +43,7 @@ app.include_router(recommendation.router)
 @app.get("/")
 def root():
     return {
-        "message": "Cognitive Memory Engine API is running"
+        "message": "LearnTrack API is running"
     }
 
 

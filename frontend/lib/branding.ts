@@ -1,4 +1,5 @@
 export const branding = {
-  name: "Cognitive Memory Engine",
-  description: "Your personal workspace for remembering and continuing what you learn.",
+  name: "LearnTrack",
+  description: "Your AI learning continuity companion.",
+  promise: "Remember what you learn. Pick up where you left off.",
 };

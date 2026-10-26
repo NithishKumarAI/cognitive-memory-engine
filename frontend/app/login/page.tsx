@@ -53,7 +53,7 @@ export default function LoginPage() {
           </div>
           <div>
             <CardTitle>Sign in</CardTitle>
-            <CardDescription>Welcome back to {branding.name}.</CardDescription>
+            <CardDescription>{branding.name} · {branding.description}</CardDescription>
           </div>
         </CardHeader>
         <CardContent>

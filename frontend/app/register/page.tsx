@@ -54,7 +54,7 @@ export default function RegisterPage() {
           </div>
           <div>
             <CardTitle>Create account</CardTitle>
-            <CardDescription>Make a little space for what you learn with {branding.name}.</CardDescription>
+            <CardDescription>{branding.name} · {branding.description}</CardDescription>
           </div>
         </CardHeader>
         <CardContent>

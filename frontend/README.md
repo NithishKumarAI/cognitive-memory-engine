@@ -1,4 +1,4 @@
-# Cognitive Memory Engine frontend
+# LearnTrack frontend
 
 Next.js App Router, React, TypeScript, Tailwind, Recharts. Use Node 24 (also pinned in `.nvmrc`, Docker and CI).
 
