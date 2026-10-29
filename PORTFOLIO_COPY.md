@@ -22,4 +22,4 @@ LearnTrack: an AI learning continuity companion with reviewed captures, evidence
 
 The owner can update the About description with the copy above. Remove or qualify the historical Cloud homepage; add a website only once the exact current V1 deployment has been verified. No current live URL is provided. Do not rename the repository or replace the existing release as part of this presentation pass. Repository settings have not been changed automatically.
 
-Previously developed as Cognitive Memory Engine. Historical phase reports, screenshots and release records remain intact. LearnTrack name uniqueness is unconfirmed; no trademark/domain ownership, user totals, ratings, commercial success or performance figures are claimed.
+Historical phase reports, screenshots and release records remain intact. LearnTrack name uniqueness is unconfirmed; no trademark/domain ownership, user totals, ratings, commercial success or performance figures are claimed.

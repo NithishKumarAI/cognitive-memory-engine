@@ -11,6 +11,7 @@ from fastapi.security import OAuth2PasswordBearer
 
 from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
+from starlette.concurrency import run_in_threadpool
 
 from app.db.dependencies import get_db
 from app.crud.user import get_user_by_email
@@ -60,7 +61,7 @@ def verify_access_token(
     except InvalidTokenError:
         return None
 
-def get_current_user(
+async def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
 ):
@@ -72,10 +73,7 @@ def get_current_user(
             detail="Invalid or expired token"
         )
 
-    user = get_user_by_email(
-        db,
-        email
-    )
+    user = await run_in_threadpool(get_user_by_email, db, email)
 
     if not user:
         raise HTTPException(
@@ -83,4 +81,9 @@ def get_current_user(
             detail="User not found"
         )
 
-    return user
+    from app.services.ai_credentials import provider_owner
+    context = provider_owner.set((user.id, db.get_bind()))
+    try:
+        yield user
+    finally:
+        provider_owner.reset(context)

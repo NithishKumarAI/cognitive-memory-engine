@@ -1,3 +1,17 @@
+# V2 release gates
+
+- [ ] Owner reviews and approves remote main promotion.
+- [ ] Back up the target product database and apply forward migrations.
+- [ ] Provision protected credential encryption keys and verify recovery/rotation.
+- [ ] Resolve or explicitly assess current dependency advisories.
+- [ ] Verify HTTPS, exact CORS origins, backup restoration and production logs.
+- [ ] Verify real microphone behavior separately with explicit provider consent.
+- [ ] Verify demo database/signing-key separation and expired-session cleanup.
+- [ ] Keep demo live AI disabled until distributed cost and abuse controls pass.
+- [ ] Verify the published deployment independently; local success is insufficient.
+
+---
+
 # Release checklist — approval required before production actions
 
 V1 hardening is local work; the earlier Phase 4 report describes its own baseline. No production migration, deployment, cloud change, commit or push was performed. Historical demo URLs do not verify this version.

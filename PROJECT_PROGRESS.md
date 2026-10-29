@@ -1,8 +1,8 @@
-# Cognitive Memory Engine
+# LearnTrack
 
 ## Project Overview
 
-Cognitive Memory Engine is a production-style AI Memory and Progress Intelligence System.
+LearnTrack is a production-style AI Memory and Progress Intelligence System.
 
 ### Goal
 
@@ -2766,7 +2766,7 @@ The system now supports:
 * Strongly typed analytics
 * Dashboard-ready APIs
 
-The Cognitive Memory Engine now functions as:
+The LearnTrack now functions as:
 
 * A Memory Assistant
 * A Progress Intelligence System
@@ -3029,7 +3029,7 @@ The system now supports:
 * Daily recommendation feeds
 * Frontend-ready recommendation APIs
 
-The Cognitive Memory Engine now functions as:
+The LearnTrack now functions as:
 
 * A Memory Assistant
 * A Progress Intelligence System
@@ -3346,7 +3346,7 @@ Recommendations
 
 ## Outcome
 
-The Cognitive Memory Engine now includes a complete user-facing application.
+The LearnTrack now includes a complete user-facing application.
 
 Users can:
 
@@ -3517,7 +3517,7 @@ Resolved:
 
 ## Final Outcome
 
-The Cognitive Memory Engine is now:
+The LearnTrack is now:
 
 * Fully Functional
 * Fully Deployed

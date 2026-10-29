@@ -2,6 +2,22 @@
 
 **Your AI learning continuity companion.** Remember what you learn. Pick up where you left off.
 
+## Product V2
+
+Home is the primary learning workspace: write or speak an update, review it and
+confirm what to save. **Review manually** works without Gemini and never makes a
+provider call. Learning paths are optional. A failed overview, path listing or
+history request no longer prevents unrelated sections or the input from loading.
+
+Use **Settings → AI Configuration** to add, replace or remove your personal Gemini
+key. Keys are encrypted on the backend and never returned to the browser. The
+operator must configure `AI_KEY_ENCRYPTION_KEYS` before enabling key storage.
+Product requests never fall back to a global `GEMINI_API_KEY`. Apply the new
+forward migration to a deliberately selected database before starting V2.
+
+The implementation branch is `codex/learntrack-product-v2`; remote `main` is not
+updated without approval. See [the V2 record](LEARNTRACK_PRODUCT_V2_REPORT.md).
+
 [![Product verification](https://github.com/NithishKumarAI/cognitive-memory-engine/actions/workflows/phase1-ci.yml/badge.svg?branch=main)](https://github.com/NithishKumarAI/cognitive-memory-engine/actions/workflows/phase1-ci.yml)
 
 [Source](https://github.com/NithishKumarAI/cognitive-memory-engine) · [Walkthrough](DEMO_GUIDE.md) · [Screenshots](frontend/public/showcase) · **Live application: Current V1 deployment pending verification.**
@@ -126,6 +142,6 @@ Dependency advisories, Docker/image verification, live Gemini, microphone/HTTPS 
 
 ## Project history
 
-**Previously developed as Cognitive Memory Engine.** Four development phases, V1 hardening and historical-recall acceptance are documented in the preserved [Phase 4 report](PHASE4_FINAL_PRODUCT_REPORT.md), [hardening report](V1_RELEASE_HARDENING_REPORT.md) and [final acceptance report](V1_FINAL_ACCEPTANCE_REPORT.md). This polish pass changes presentation, not authentication, AI algorithms or the database schema.
+Four development phases, V1 hardening and historical-recall acceptance are documented in the preserved [Phase 4 report](PHASE4_FINAL_PRODUCT_REPORT.md), [hardening report](V1_RELEASE_HARDENING_REPORT.md) and [final acceptance report](V1_FINAL_ACCEPTANCE_REPORT.md). This polish pass changes presentation, not authentication, AI algorithms or the database schema.
 
 LearnTrack name uniqueness has not been confirmed. No trademark or domain ownership is claimed. [Portfolio/resume copy](PORTFOLIO_COPY.md) is available for factual reuse.

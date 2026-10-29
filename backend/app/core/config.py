@@ -30,3 +30,9 @@ GEMINI_TIMEOUT_MS = int(os.getenv("GEMINI_TIMEOUT_MS", "30000"))
 # Operational kill switches, not distributed quotas. Defaults preserve existing deployments.
 REGISTRATION_ENABLED = os.getenv("REGISTRATION_ENABLED", "true").lower() == "true"
 AI_ENABLED = os.getenv("AI_ENABLED", "true").lower() == "true"
+
+# Trusted backend configuration. Browser flags never select an edition.
+APP_EDITION = os.getenv("APP_EDITION", "product")
+if APP_EDITION not in ("product", "demo"):
+    raise RuntimeError("APP_EDITION must be product or demo")
+AI_KEY_ENCRYPTION_KEYS = os.getenv("AI_KEY_ENCRYPTION_KEYS", "")

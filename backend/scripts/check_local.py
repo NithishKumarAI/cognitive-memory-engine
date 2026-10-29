@@ -33,8 +33,8 @@ def main():
         failures.append("The app and migration URLs must name the same local development database")
     secret = values.get("SECRET_KEY") or ""
     if len(secret) < 32 or "replace" in secret.lower(): failures.append("SECRET_KEY: supply your own random value of at least 32 characters")
-    if values.get("AI_ENABLED", "true").lower() == "true" and (not values.get("GEMINI_API_KEY") or "replace" in values["GEMINI_API_KEY"].lower()):
-        failures.append("GEMINI_API_KEY: configure your own key or use AI_ENABLED=false")
+    if values.get("AI_ENABLED", "true").lower() == "true" and not values.get("AI_KEY_ENCRYPTION_KEYS"):
+        failures.append("AI_KEY_ENCRYPTION_KEYS: configure secure personal-key storage or use AI_ENABLED=false")
     if not values.get("FRONTEND_ORIGINS"): failures.append("FRONTEND_ORIGINS: configure your browser origin")
     if failures:
         print("Local setup needs attention (values hidden):")

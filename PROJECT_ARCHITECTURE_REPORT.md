@@ -2,7 +2,7 @@
 
 ## What Problem This Project Solves
 
-Cognitive Memory Engine is a backend system for capturing study activity, converting that activity into structured long-term memories, generating embeddings for those memories, and retrieving semantically relevant memories later.
+LearnTrack is a backend system for capturing study activity, converting that activity into structured long-term memories, generating embeddings for those memories, and retrieving semantically relevant memories later.
 
 The project is aimed at becoming a production-style RAG memory and progress intelligence system.
 
@@ -1480,7 +1480,7 @@ But migrations do not currently reproduce:
 
 ## Overview
 
-Phase 7 introduced Retrieval-Augmented Generation (RAG) capabilities to the Cognitive Memory Engine.
+Phase 7 introduced Retrieval-Augmented Generation (RAG) capabilities to the LearnTrack.
 
 The system now supports:
 
@@ -1492,7 +1492,7 @@ The system now supports:
 * Citation-aware responses
 * Conversation persistence
 
-The Cognitive Memory Engine is now capable of generating answers grounded in user-owned memories.
+The LearnTrack is now capable of generating answers grounded in user-owned memories.
 
 ---
 
@@ -2114,7 +2114,7 @@ The system can now:
 * Generate dashboard-ready analytics
 * Produce user-specific progress metrics
 
-The Cognitive Memory Engine is now both a Memory Assistant and a Progress Intelligence System.
+The LearnTrack is now both a Memory Assistant and a Progress Intelligence System.
 
 ```
 ```
@@ -2268,7 +2268,7 @@ User 1 --- N Conversation
 User 1 --- 1 UsageLimit
 ```
 
-The Cognitive Memory Engine now functions as both:
+The LearnTrack now functions as both:
 
 * A Memory Assistant
 * A Progress Intelligence System
@@ -2530,7 +2530,7 @@ The system can now:
 * Generate daily recommendation feeds
 * Produce frontend-ready recommendation APIs
 
-The Cognitive Memory Engine now functions as:
+The LearnTrack now functions as:
 
 * A Memory Assistant
 * A Progress Intelligence System
@@ -2543,11 +2543,11 @@ The Cognitive Memory Engine now functions as:
 
 ## Overview
 
-Phase 10 introduced the complete frontend application for the Cognitive Memory Engine.
+Phase 10 introduced the complete frontend application for the LearnTrack.
 
 The system now includes a fully integrated Next.js dashboard that connects directly to the FastAPI backend.
 
-Users can now interact with all major Cognitive Memory Engine features through a modern web interface.
+Users can now interact with all major LearnTrack features through a modern web interface.
 
 ---
 
@@ -2837,7 +2837,7 @@ Recommendation Engine
 
 ## Current Capabilities
 
-The Cognitive Memory Engine can now:
+The LearnTrack can now:
 
 * Register users
 * Authenticate users
@@ -2852,7 +2852,7 @@ The Cognitive Memory Engine can now:
 * Generate Recommendations
 * Provide a Complete Frontend Experience
 
-The Cognitive Memory Engine is now an end-to-end full-stack AI learning platform.
+The LearnTrack is now an end-to-end full-stack AI learning platform.
 
 
 # Phase 11 — Production Deployment & Cloud Architecture
@@ -3003,7 +3003,7 @@ https://cognitive-memory-backend-244986175934.asia-south1.run.app
 
 ## Final System Capabilities
 
-The Cognitive Memory Engine now supports:
+The LearnTrack now supports:
 
 * User Authentication
 * Learning Tracks

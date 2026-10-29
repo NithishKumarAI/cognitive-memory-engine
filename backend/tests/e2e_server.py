@@ -43,6 +43,10 @@ def mock_generate(contents, config=None):
 llm_service.generate = mock_generate
 llm_service.generate_response = lambda prompt: "From your saved records: " + (re.search(r"\[Observation \d+\]", prompt).group() if re.search(r"\[Observation \d+\]", prompt) else "the available evidence is limited.")
 from app.main import app
+# The browser harness explicitly advertises its mocked provider, not a live key.
+for route in app.routes:
+    if getattr(route, "path", "") == "/settings/ai" and "GET" in getattr(route, "methods", set()):
+        route.dependant.call = lambda **kwargs: {"configured": True, "available": True, "storage_ready": True, "edition": "product"}
 from app.db.database import engine
 
 def cleanup():

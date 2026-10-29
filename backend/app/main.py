@@ -3,6 +3,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.exception_handlers import request_validation_exception_handler
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.exc import SQLAlchemyError
 import app.models
 from app.core.config import FRONTEND_ORIGINS
 from app.db.database import test_connection
@@ -17,6 +18,7 @@ from app.routes import recommendation
 from app.routes.capture import router as capture_router
 from app.routes.learning import router as learning_router
 from app.routes.workspace import router as workspace_router
+from app.routes.ai_configuration import router as ai_configuration_router
 
 app = FastAPI(
     title="LearnTrack",
@@ -32,6 +34,7 @@ app.add_middleware(
 )
 
 app.include_router(workspace_router)
+app.include_router(ai_configuration_router)
 app.include_router(capture_router)
 app.include_router(learning_router)
 app.include_router(user_router)
@@ -41,6 +44,12 @@ app.include_router(rag.router)
 app.include_router(analytics.router)
 app.include_router(learning_track_router)
 app.include_router(recommendation.router)
+
+
+@app.exception_handler(SQLAlchemyError)
+async def database_unavailable(request, exception):
+    # No SQL parameters, connection strings or exception text enter responses/logs.
+    return JSONResponse(status_code=503, content={"detail": "Learning storage unavailable; retry when the database is ready"})
 
 @app.get("/")
 def root():
@@ -80,7 +89,7 @@ async def private_responses(request, call_next):
 
 @app.exception_handler(RequestValidationError)
 async def safe_auth_validation(request, exception):
-    if request.url.path in ("/register", "/login"):
+    if request.url.path in ("/register", "/login", "/settings/ai"):
         return JSONResponse(status_code=422, content={"detail": [
             {"loc": list(error["loc"]), "type": error["type"], "msg": "Invalid form value"}
             for error in exception.errors()
