@@ -88,6 +88,30 @@ def test_authenticated_provider_uses_only_current_users_key(client, headers, use
     assert constructor.call_count == 3
 
 
+def test_ciphertext_cannot_be_reassigned_to_another_owner_and_rotation_reads_old_keys(db, users, monkeypatch):
+    import base64
+    from app.core import config
+    from app.models.ai_credential import AICredential
+    from app.services.ai_credentials import encrypt, personal_key, provider_owner
+    old, new = [base64.urlsafe_b64encode(value * 32).decode() for value in [b"2", b"3"]]
+    monkeypatch.setattr(config, "AI_KEY_ENCRYPTION_KEYS", old)
+    encrypted = encrypt(users[0].id, "synthetic-owner-key-for-rotation")
+    db.add(AICredential(user_id=users[0].id, encrypted_key=encrypted))
+    db.add(AICredential(user_id=users[1].id, encrypted_key=encrypted)); db.commit()
+    monkeypatch.setattr(config, "AI_KEY_ENCRYPTION_KEYS", new + "," + old)
+    owner = provider_owner.set((users[0].id, db.get_bind()))
+    try:
+        assert personal_key() == "synthetic-owner-key-for-rotation"
+    finally:
+        provider_owner.reset(owner)
+    other = provider_owner.set((users[1].id, db.get_bind()))
+    try:
+        with pytest.raises(ValueError, match="owner mismatch"):
+            personal_key()
+    finally:
+        provider_owner.reset(other)
+
+
 def test_storage_outage_is_sanitized_and_recovers(client, headers, monkeypatch):
     from app.services import continuity_service
     from sqlalchemy.exc import OperationalError
@@ -100,6 +124,45 @@ def test_storage_outage_is_sanitized_and_recovers(client, headers, monkeypatch):
     assert client.get("/learning-tracks", headers=headers).status_code == 200
     monkeypatch.setattr(continuity_service, "get_learning_overview", original)
     assert client.get("/learning/overview", headers=headers).status_code == 200
+
+
+@pytest.mark.postgres
+def test_confirmed_learning_survives_application_process_restarts(postgres_db):
+    import os
+    import sys
+    import subprocess
+    import json
+    from pathlib import Path
+    from app.models.user import User
+    from app.models.learning_capture import LearningCapture
+    from app.schemas.capture import ConfirmInput
+    from app.services.capture_service import confirm
+    user = User(username="restart-v2", email="restart-v2@example.com", hashed_password="synthetic-unused")
+    postgres_db.add(user); postgres_db.flush()
+    capture = LearningCapture(user_id=user.id, original_text="A durable manual learning update", source_type="text", status="pending", version=1)
+    postgres_db.add(capture); postgres_db.commit()
+    result = confirm(postgres_db, capture.id, user.id, ConfirmInput(expected_version=1,
+        interpretation={"topics": ["Persistence"], "observations": [{"observation_type": "learned", "topic": "Persistence", "content": "Saved through a restart"}]}))
+    capture_id = result.id
+    environment = {**os.environ, "DATABASE_URL": postgres_db.bind.url.render_as_string(hide_password=False),
+                   "AI_ENABLED": "false", "APP_EDITION": "product", "PYTHON_DOTENV_DISABLED": "1"}
+    script = '''import json
+from fastapi.testclient import TestClient
+from app.main import app
+from app.core.auth import create_access_token
+with TestClient(app) as client:
+    headers = {"Authorization": "Bearer " + create_access_token({"sub": "restart-v2@example.com"})}
+    response = client.get("/capture/CAPTURE_ID", headers=headers)
+    assert response.status_code == 200
+    print(json.dumps(response.json()))
+'''.replace("CAPTURE_ID", str(capture_id))
+    for _ in range(2):
+        child = subprocess.run([sys.executable, "-c", script], env=environment,
+            cwd=Path(__file__).resolve().parents[1], capture_output=True, text=True, timeout=30)
+        assert child.returncode == 0, "Isolated restart verification failed; private subprocess output suppressed"
+        saved = json.loads(child.stdout)
+        assert saved["status"] == "confirmed" and saved["original_text"] == "A durable manual learning update"
+        assert saved["observations"][0]["content"] == "Saved through a restart"
 
 
 @pytest.mark.postgres

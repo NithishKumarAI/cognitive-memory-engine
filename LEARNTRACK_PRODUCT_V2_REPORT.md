@@ -98,3 +98,61 @@ On this Windows Python, running `ZoneInfo('Asia/Calcutta')` with site packages
 disabled reproduces `ModuleNotFoundError: tzdata` / `ZoneInfoNotFoundError`.
 The normal runtime succeeds. This validates the dependency requirement while
 remaining insufficient to establish the original Capture failure's cause.
+
+## Original failure identified — configured legacy API
+
+A later direct check of the ignored `frontend/.env.local` found
+`NEXT_PUBLIC_API_URL` pointing to the existing legacy Cloud Run origin rather
+than the local backend on port 8000. Read-only **unauthenticated** requests to
+that exact configured origin returned:
+
+- `/health`: **200**.
+- `/openapi.json`: **200**, title **Cognitive Memory Engine**. It declares learning
+  tracks but none of the new `/learning/*` continuity or `/capture` routes.
+- `/me`: **401**, as expected without a token.
+- `/learning/overview`: **404**.
+- `/learning/checkpoints`: **404**.
+- `/learning/recommendations`: **404**.
+- `/learning-tracks`: **401**, as expected without a token.
+- `/capture`: **404**.
+
+This supplies direct evidence for both reported failures: Home's request group
+includes missing continuity routes; Capture's group includes missing capture
+history. A healthy legacy backend is not compatible with the current frontend.
+Successful registration against that API cannot establish route compatibility.
+The independent PostgreSQL matrix establishes the same required endpoints exist
+and return 200 in the current local code with an empty account.
+
+The local frontend setting is now `http://127.0.0.1:8000`; its previous file is
+preserved as the ignored `.env.local.before-learntrack-v2`. Other settings and
+production credentials were not changed. Restart `npm run dev`, or rebuild a
+production frontend, to replace the old API origin embedded in JavaScript. Users
+registered through the legacy remote API must register separately in their local
+database; accounts are not copied or silently migrated between environments.
+No Cloud Run deployment or remote data mutation was performed.
+
+The earlier uncertainty entries above record the investigation in order; this
+direct endpoint evidence supersedes the initial unknown-cause disposition.
+
+## Final local handoff
+
+The authenticated product branch now includes two additional regressions for
+application-process restart persistence and ciphertext ownership/key rotation:
+**221 backend tests passed, 0 failed, 0 skipped**. Lint, the three frontend release
+checks and the product production build pass. The final local bundle targets
+`http://127.0.0.1:8000`. The read-only local setup check now confirms a reachable
+database, pgvector and current product migration head.
+
+The verified local development database on loopback port 55440 was backed up
+before applying the additive `f50100000001` migration. All six existing
+user/learning record counts remained unchanged. Its missing migration URL was
+explicitly set to the same already configured local target, without changing
+credential values. The pre-migration database archive and env backup remain in
+ignored `.local-backups/`; the archive was restored successfully into a newly
+created disposable database and the original six table counts matched. No
+production database was changed, reset or restored over.
+
+The published separate demo commit `69a7814` passed
+[GitHub Actions run 40871303503](https://github.com/NithishKumarAI/cognitive-memory-engine/actions/runs/40871303503).
+The shared product/demo verification totals and remaining release limitations are
+in `LEARNTRACK_FINAL_ACCEPTANCE.md`.
