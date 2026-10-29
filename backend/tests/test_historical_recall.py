@@ -119,8 +119,9 @@ def test_old_continuity_and_track_identity_survive_recent_display_caps(db, users
     tracks = [LearningTrack(user_id=uid, name=name) for name in ["Python applications", "Python internals"]]
     db.add_all(tracks); db.flush()
     old_records = [seed_observation(db, uid, track_id=assigned, content=f"Old difficulty {index}") for index, assigned in enumerate([tracks[0].id, tracks[1].id, None])]
-    _, completed = seed_observation(db, uid, kind="intended_next_step", content="Already completed", track_id=tracks[0].id)
-    _, pending = seed_observation(db, uid, kind="intended_next_step", content="Write decorator examples", track_id=tracks[1].id)
+    # Explicit day ordering avoids same-clock-tick ties across independent tracks on Windows.
+    _, completed = seed_observation(db, uid, kind="intended_next_step", content="Already completed", track_id=tracks[0].id, age=151)
+    _, pending = seed_observation(db, uid, kind="intended_next_step", content="Write decorator examples", track_id=tracks[1].id, age=149)
     db.add(LearningAction(user_id=uid, idempotency_key="synthetic-completed", action_type="next_step", status="completed", observation_id=completed.id))
     seed_observation(db, users[1].id, content="Private Python difficulty")
     expected = {row.id for _, row in old_records}; pending_id = pending.id; complete_id = completed.id

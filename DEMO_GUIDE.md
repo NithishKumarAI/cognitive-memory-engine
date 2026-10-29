@@ -4,13 +4,13 @@ Your AI learning continuity companion. Remember what you learn. Pick up where yo
 
 ## Start with the public overview
 
-Run the application with the [Windows local setup](README.md#run-locally-on-windows), then visit `http://localhost:3000/`. No account is required to read the workflow and synthetic screenshots. Open full screenshots to inspect details on a phone. These preserved browser-test images predate the rename. Sign in/register links lead to the existing authenticated workspace; there is no anonymous live AI demo.
+Run the application with the [Windows local setup](README.md#run-locally-on-windows), then visit `http://localhost:3000/`. No account is required to explore the animated capture, review, memory, checkpoint and insights scenes. These are labelled conceptual illustrations, not a functional anonymous AI demo. Pause animation or use your system reduced-motion setting. Historical synthetic screenshots remain in the README and test evidence. Sign in/register links lead to the existing authenticated workspace; there is no anonymous live AI demo.
 
 Current V1 deployment pending verification. The historical Cloud homepage is not evidence of a deployed LearnTrack V1. No shared public demo account is provided.
 
 ## Prepare a private, synthetic walkthrough
 
-Use a dedicated local development PostgreSQL database with pgvector, Python 3.12 and Node 24. Set both `DATABASE_URL` and `ALEMBIC_DATABASE_URL` explicitly before `alembic upgrade head`, as shown in the README. Run the API on 8000 and frontend on 3000; check API `/health`. Create your own synthetic account with an example.com email and a unique password. Do not reuse real credentials or record tokens.
+Use the [simple local setup](LOCAL_SETUP.md) with a dedicated new development PostgreSQL database, pgvector, Python 3.12 and Node 24. Set both `DATABASE_URL` and `ALEMBIC_DATABASE_URL` explicitly before `alembic upgrade head`, as shown in the README. Run the API on 8000 and frontend on 3000; check API `/health`. Create your own synthetic account with an example.com email and a unique password. Do not reuse real credentials or record tokens.
 
 The automated suite uses a mocked provider and a disposable database; it is the provider-free way to exercise the full capture journey. A normal local server requires your own authorized Gemini configuration for extraction. Do not enable unrestricted shared usage to make a presentation work. Manual `AI_ENABLED=false` inspection can cover the overview, authentication and non-AI pages, but capture analysis will be unavailable.
 

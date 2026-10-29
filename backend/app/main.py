@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
+from fastapi.exception_handlers import request_validation_exception_handler
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import app.models
@@ -74,3 +76,13 @@ async def private_responses(request, call_next):
         response.headers["Cache-Control"] = "no-store"
         response.headers["Vary"] = ", ".join(filter(None, [response.headers.get("Vary"), "Authorization"]))
     return response
+
+
+@app.exception_handler(RequestValidationError)
+async def safe_auth_validation(request, exception):
+    if request.url.path in ("/register", "/login"):
+        return JSONResponse(status_code=422, content={"detail": [
+            {"loc": list(error["loc"]), "type": error["type"], "msg": "Invalid form value"}
+            for error in exception.errors()
+        ]})
+    return await request_validation_exception_handler(request, exception)

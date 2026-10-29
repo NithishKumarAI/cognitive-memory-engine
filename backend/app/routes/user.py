@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from app.db.dependencies import get_db
 from app.schemas.user import UserCreate
@@ -66,32 +67,27 @@ def register_user(
     if not REGISTRATION_ENABLED:
         raise HTTPException(403, "Registration is currently closed")
 
-    existing_email = get_user_by_email(
-        db,
-        user.email
-    )
-
-    if existing_email:
-        raise HTTPException(
-            status_code=400,
-            detail="Email already registered"
-        )
-
-    existing_username = get_user_by_username(
-        db,
-        user.username
-    )
-
-    if existing_username:
-        raise HTTPException(
-            status_code=400,
-            detail="Username already exists"
-        )
-
-    return create_user(
-        db,
-        user
-    )
+    try:
+        if get_user_by_email(db, user.email):
+            raise HTTPException(400, "Email already registered")
+        if get_user_by_username(db, user.username):
+            raise HTTPException(400, "Username already exists")
+        return create_user(db, user)
+    except IntegrityError:
+        # A concurrent request can win after the preflight checks. No duplicate insert.
+        db.rollback()
+        try:
+            if get_user_by_email(db, user.email):
+                raise HTTPException(400, "Email already registered")
+            if get_user_by_username(db, user.username):
+                raise HTTPException(400, "Username already exists")
+        except SQLAlchemyError:
+            db.rollback()
+            raise HTTPException(503, "Account service unavailable") from None
+        raise HTTPException(409, "Account conflict; try signing in or use different details") from None
+    except SQLAlchemyError:
+        db.rollback()
+        raise HTTPException(503, "Account service unavailable") from None
 
 @router.post(
     "/login",
@@ -101,11 +97,11 @@ def login(
     credentials: UserLogin,
     db: Session = Depends(get_db)
 ):
-    user = authenticate_user(
-        db,
-        credentials.email,
-        credentials.password
-    )
+    try:
+        user = authenticate_user(db, credentials.email, credentials.password)
+    except SQLAlchemyError:
+        db.rollback()
+        raise HTTPException(503, "Account service unavailable") from None
 
     if not user:
         raise HTTPException(

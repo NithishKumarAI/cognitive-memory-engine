@@ -227,3 +227,6 @@ frontend/playwright-report/
 
 # Local final-acceptance scratch output
 .acceptance-*
+
+# Temporary UI/auth verification state
+.ui-auth-*

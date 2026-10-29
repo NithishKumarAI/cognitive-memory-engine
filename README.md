@@ -36,7 +36,8 @@ Actual screenshots from existing browser tests, using synthetic Avery/Python lea
 - Resume checkpoints and deterministic recommendations with exact supporting-record links and persisted completion/resolution/dismissal feedback.
 - Owner-scoped search and grounded assistant responses with cited saved evidence. Confirmed observations can be recalled without optional embeddings; keyword recall is not guaranteed paraphrase search.
 - Recorded study time, activity patterns and confirmed-reflection counts; responsive navigation and light/dark/system appearance.
-- A public `/` overview that requires no account; the workspace stays authenticated under `/dashboard`.
+- An animated public `/` product story with original conceptual scenes, theme support, pause controls and reduced-motion behavior; the workspace stays authenticated under `/dashboard`.
+- Password confirmation, accessible visibility controls and safe auth feedback, including recovery after account creation succeeds but automatic sign-in fails.
 
 **Workflow:** text or consented audio → editable text → AI draft → user review → confirmed capture and observations → optional searchable memory → checkpoints, recommendations and grounded recall.
 
@@ -60,45 +61,20 @@ AI suggestions remain separate from confirmed evidence. PostgreSQL persists capt
 
 ## Run locally on Windows
 
-Use **Python 3.12**, **Node 24**, and a dedicated development PostgreSQL database with the **pgvector extension installed on the server**. Start PowerShell at the repository root. Create a development role/database through your PostgreSQL administrator; the example assumes `cme_dev` exists on loopback. Grant only the development permissions needed to migrate that database. Never use a production URL.
+Follow [LOCAL_SETUP.md](LOCAL_SETUP.md). Install Python 3.12, Node 24 and local PostgreSQL/pgvector; create a **new separate development database**, then edit only `backend/.env` and `frontend/.env.local`. Both are gitignored.
+
+Set `DATABASE_URL` and the explicit `ALEMBIC_DATABASE_URL` to that dedicated database. The local helpers read the two named database settings without weakening the existing Alembic guard:
 
 ```powershell
-py -3.12 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r backend/requirements.txt
-if (-not (Test-Path backend/.env)) { Copy-Item backend/.env.example backend/.env }
-if (-not (Test-Path frontend/.env.local)) { Copy-Item frontend/.env.example frontend/.env.local }
-```
-
-Edit those local files: set a strong `SECRET_KEY`, a development-only `DATABASE_URL`, the backend `FRONTEND_ORIGINS`, and frontend `NEXT_PUBLIC_API_URL=http://127.0.0.1:8000`. For optional live AI, supply your own Gemini key and check cost/retention controls first. `AI_ENABLED=false` allows a provider-free inspection but disables Gemini extraction/transcription/answers; it does not prevent embedding downloads. Do not commit secrets.
-
-**Alembic requires an explicit `ALEMBIC_DATABASE_URL` in addition to the application's `DATABASE_URL`.** Set both in the current PowerShell session to the same dedicated development target; do not rely on the app's `.env` being loaded by Alembic. Replace `replace-me` with your local development password (URL-encode special characters).
-
-```powershell
-$env:DATABASE_URL='postgresql+psycopg://cme_dev:replace-me@127.0.0.1:5432/cme_dev'
-$env:ALEMBIC_DATABASE_URL=$env:DATABASE_URL
-# Only your dedicated development database; an authorized role provisions vector.
-psql -h 127.0.0.1 -p 5432 -U cme_dev -d cme_dev -c 'CREATE EXTENSION IF NOT EXISTS vector;'
-if ($LASTEXITCODE -ne 0) { throw 'Provision pgvector before migrating.' }
+# From the repository root, after installing dependencies and configuring .env:
 Set-Location backend
-..\.venv\Scripts\python.exe -m alembic upgrade head
-if ($LASTEXITCODE -ne 0) { throw 'Migration failed; inspect the error before starting.' }
+..\.venv\Scripts\python.exe scripts/check_local.py
+..\.venv\Scripts\python.exe scripts/migrate_local.py
+..\.venv\Scripts\python.exe scripts/check_local.py --database
 ..\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-If the role cannot provision extensions, ask the local database administrator to enable `vector` in this development database. Do not reset tables or bypass migrations.
-
-In a second PowerShell terminal at the repository root:
-
-```powershell
-Set-Location frontend
-npm ci
-$env:NEXT_PUBLIC_API_URL='http://127.0.0.1:8000'
-npm run dev
-```
-
-Open `http://localhost:3000` for the public overview; `/register` and `/login` open your workspace. Check `http://127.0.0.1:8000/health` and API docs at `/docs`. First real embedding use may download model weights; plan the cache/network deliberately. A hosted frontend needs a browser-reachable HTTPS API and matching CORS origins.
-
-For a production-mode frontend **on loopback only**, set `$env:ALLOW_LOCAL_API_ORIGIN='1'`, then `npm run build` and `npm start` from `frontend`. Do not enable that opt-in for hosted builds. `NEXT_PUBLIC_API_URL` is embedded at build time; hosted release builds require HTTPS. `PORT` controls the production frontend server (default 3000).
+Stop if any readiness/migration command fails. In another terminal, run `npm ci` and `npm run dev` from `frontend`. Open `http://localhost:3000`; check backend `http://127.0.0.1:8000/health`. The public homepage works without the API, but signup and the workspace require a running API and initialized database. `AI_ENABLED=false` permits initial signup/login checks without Gemini; real capture/assistant operations need deliberate provider configuration.
 
 ## Manual testing
 

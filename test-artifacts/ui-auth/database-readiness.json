@@ -1,0 +1,14 @@
+{
+  "status": "PASS",
+  "initial_database_empty": true,
+  "alembic_head": "f40100000001",
+  "pgvector": true,
+  "accounts_after_restart": 2,
+  "tracks_after_restart": 1,
+  "api_process_restarted": true,
+  "postgresql_restarted": true,
+  "password_hash_compatible": true,
+  "duplicate_retry_rejected": true,
+  "owner_isolation": true,
+  "live_ai": false
+}
