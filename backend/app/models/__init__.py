@@ -8,3 +8,4 @@ from app.models.learning_track import LearningTrack
 from app.models.learning_capture import LearningCapture, LearningObservation
 from app.models.learning_action import LearningAction
 from app.models.ai_credential import AICredential
+from app.models.demo_session import DemoSession, DemoBudget

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ArrowRight, ArrowDown, AudioLines, BookOpen, Check, CheckCheck, CornerDownRight, Fingerprint, GitBranch, Layers3, Sparkles } from "lucide-react";
 import { ThemeControl } from "@/components/dashboard/theme-control";
 import { LandingMotion } from "@/components/landing/landing-motion";
@@ -17,6 +18,7 @@ function SceneLabel({ children }: { children: React.ReactNode }) { return <div c
 function SectionHeading({ number, tag, title, children }: { number: string; tag: string; title: string; children: React.ReactNode }) { return <div className="story-copy"><p className="story-kicker">{number} / {tag}</p><h2>{title}</h2><p className="story-description">{children}</p></div>; }
 
 export default function Home() {
+  if (process.env.APP_EDITION === "demo") redirect("/dashboard");
   return <LandingMotion>
     <a href="#main" className="skip-link">Skip to content</a>
     <header className="landing-header"><Link className="landing-brand" href="/"><BookOpen aria-hidden="true" className="size-5" />{branding.name}<span className="brand-tag">A LITTLE LEARNING, REMEMBERED</span></Link><nav aria-label="Public navigation"><a href="#story" className="desktop-story-link">The story</a><ThemeControl /><Link href="/login" className="landing-signin">Sign in</Link><Link href="/register" className="landing-button small">Get Started <ArrowRight aria-hidden="true" className="size-4" /></Link></nav></header>

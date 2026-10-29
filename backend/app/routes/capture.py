@@ -10,6 +10,12 @@ from app.schemas.capture import AnalyzeInput, ConfirmInput, VersionInput, Captur
 from app.services import capture_service as service
 from app.services.audio_service import MAX_AUDIO_BYTES, validate_audio, transcribe
 from starlette.concurrency import run_in_threadpool
+from app.core import config
+
+
+def product_ai():
+    if config.APP_EDITION == "demo":
+        raise HTTPException(403, "Live AI is disabled in this demo. Use manual capture or the guided example.")
 
 router = APIRouter(prefix="/capture", tags=["Learning capture"])
 
@@ -40,6 +46,7 @@ def manual_new(payload: AnalyzeInput, db: Session = Depends(get_db), user: User 
 
 @router.post("/analyze", response_model=CaptureResponse)
 def analyze_new(payload: AnalyzeInput, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    product_ai()
     user_id = user.id
     with safe_write(db):
         service.check_track(db, payload.learning_track_id, user_id)
@@ -55,6 +62,7 @@ def analyze_new(payload: AnalyzeInput, db: Session = Depends(get_db), user: User
 
 @router.post("/transcribe")
 async def transcribe_audio(request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    product_ai()
     if request.headers.get("x-audio-consent") != "true":
         raise HTTPException(400, "Explicit cloud audio processing consent is required")
     db.rollback()  # Authentication has completed; no open DB transaction during upload/provider work.
@@ -91,6 +99,7 @@ def get_capture(capture_id: int, db: Session = Depends(get_db), user: User = Dep
 
 @router.post("/{capture_id}/analyze", response_model=CaptureResponse)
 def retry_analysis(capture_id: int, payload: VersionInput, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    product_ai()
     user_id = user.id
     with safe_write(db):
         return service.analyze(db, capture_id, user_id, payload.expected_version)
@@ -98,6 +107,8 @@ def retry_analysis(capture_id: int, payload: VersionInput, db: Session = Depends
 
 @router.post("/{capture_id}/confirm", response_model=CaptureResponse)
 def confirm_capture(capture_id: int, payload: ConfirmInput, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    if config.APP_EDITION == "demo" and payload.create_memories:
+        raise HTTPException(403, "Creating model-indexed memories is disabled in the demo. Save observations without this option.")
     user_id = user.id
     with safe_write(db):
         return service.confirm(db, capture_id, user_id, payload)

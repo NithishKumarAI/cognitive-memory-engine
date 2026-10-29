@@ -14,6 +14,7 @@ import {
   register as registerRequest,
 } from "@/services/auth";
 import type { LoginPayload, RegisterPayload, User } from "@/types/auth";
+import { getEdition, ensureDemoSession } from "@/services/edition";
 
 type AuthStatus = "loading" | "authenticated" | "unauthenticated" | "error";
 
@@ -21,8 +22,17 @@ export function useAuth() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [status, setStatus] = useState<AuthStatus>("loading");
+  const [edition, setEdition] = useState<"product" | "demo">("product");
 
   const refreshUser = useCallback(async () => {
+    let currentEdition: "product" | "demo" = "product";
+    try {
+      const information = await getEdition();
+      currentEdition = information.edition;
+      setEdition(information.edition);
+      if (information.edition === "demo") await ensureDemoSession();
+      else { sessionStorage.removeItem("learntrack_demo_token"); sessionStorage.removeItem("learntrack_demo_mode"); }
+    } catch { setStatus("error"); return null; }
     const token = getToken();
 
     if (!token) {
@@ -39,6 +49,7 @@ export function useAuth() {
       return currentUser;
     } catch (error) {
       if (!(error instanceof AxiosError) || error.response?.status !== 401) { setStatus("error"); return null; }
+      if (currentEdition === "demo") { setUser(null); setStatus("error"); return null; }
       clearToken();
       setUser(null);
       setStatus("unauthenticated");
@@ -94,5 +105,6 @@ export function useAuth() {
     register,
     status,
     user,
+    edition,
   };
 }

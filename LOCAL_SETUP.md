@@ -1,5 +1,13 @@
 # Product V2 additions
 
+If Home/Capture shows a generic load error while local health is healthy, check
+`frontend/.env.local` first: this checkout previously pointed at a legacy Cloud
+Run backend with missing capture/continuity routes. For local development use
+`NEXT_PUBLIC_API_URL=http://127.0.0.1:8000`, then restart the frontend (or rebuild a
+production frontend). The previous file is retained locally as the ignored
+`.env.local.before-learntrack-v2`. Register separately in the local database if
+your earlier registration reached that remote API.
+
 The product name is **LearnTrack**. Repository paths and existing database/session
 identifiers retain their original spelling for compatibility.
 

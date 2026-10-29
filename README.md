@@ -15,6 +15,13 @@ operator must configure `AI_KEY_ENCRYPTION_KEYS` before enabling key storage.
 Product requests never fall back to a global `GEMINI_API_KEY`. Apply the new
 forward migration to a deliberately selected database before starting V2.
 
+The `demo` branch adds isolated anonymous workspaces with realistic seed records,
+manual capture, guided review examples and evidence-based recall. Demo live AI
+is deliberately server-blocked. Use [DEMO_GUIDE.md](DEMO_GUIDE.md) to start it with
+separate database credentials and signing keys. Product and demo are not deployed
+by this work; see [final acceptance](LEARNTRACK_FINAL_ACCEPTANCE.md) for remaining
+release gates.
+
 The implementation branch is `codex/learntrack-product-v2`; remote `main` is not
 updated without approval. See [the V2 record](LEARNTRACK_PRODUCT_V2_REPORT.md).
 
@@ -30,7 +37,7 @@ The core differentiator is evidence-based learning continuity: checkpoints and r
 
 ## A look inside
 
-Actual screenshots from existing browser tests, using synthetic Avery/Python learning records. They predate the LearnTrack rename and display the earlier name. Original [test evidence](test-artifacts/final-acceptance/screenshots) is preserved.
+Current product V2 screenshots from production-browser tests, using synthetic Avery/Python learning records. [V2 evidence](test-artifacts/product-v2/screenshots) and the [historical evidence](test-artifacts/final-acceptance/screenshots) are preserved.
 
 **Resume from a checkpoint**
 
@@ -90,7 +97,7 @@ Set-Location backend
 ..\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Stop if any readiness/migration command fails. In another terminal, run `npm ci` and `npm run dev` from `frontend`. Open `http://localhost:3000`; check backend `http://127.0.0.1:8000/health`. The public homepage works without the API, but signup and the workspace require a running API and initialized database. `AI_ENABLED=false` permits initial signup/login checks without Gemini; real capture/assistant operations need deliberate provider configuration.
+Stop if any readiness/migration command fails. In another terminal, run `npm ci` and `npm run dev` from `frontend`. Open `http://localhost:3000`; check backend `http://127.0.0.1:8000/health`. The public homepage works without the API, but signup and the workspace require a running API and initialized database. `AI_ENABLED=false` supports signup/login and manual capture. Settings → AI Configuration is required for personal-key AI operations; grounded continuity queries also work without Gemini.
 
 ## Manual testing
 

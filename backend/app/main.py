@@ -19,12 +19,27 @@ from app.routes.capture import router as capture_router
 from app.routes.learning import router as learning_router
 from app.routes.workspace import router as workspace_router
 from app.routes.ai_configuration import router as ai_configuration_router
+from app.routes.demo import router as demo_router
+from contextlib import asynccontextmanager
+from app.core.demo_body_limit import DemoBodyLimit
+
+
+@asynccontextmanager
+async def lifespan(application):
+    from app.core import config
+    if config.APP_EDITION == "demo":
+        from app.db.database import engine
+        from app.services.demo_service import require_demo_storage
+        require_demo_storage(engine)
+    yield
 
 app = FastAPI(
+    lifespan=lifespan,
     title="LearnTrack",
     description="Your AI learning continuity companion.",
     version="1.0.0"
 )
+app.add_middleware(DemoBodyLimit)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=FRONTEND_ORIGINS,
@@ -35,6 +50,7 @@ app.add_middleware(
 
 app.include_router(workspace_router)
 app.include_router(ai_configuration_router)
+app.include_router(demo_router)
 app.include_router(capture_router)
 app.include_router(learning_router)
 app.include_router(user_router)
@@ -81,7 +97,7 @@ def health_check():
 @app.middleware("http")
 async def private_responses(request, call_next):
     response = await call_next(request)
-    if request.headers.get("authorization") or request.url.path in ("/login", "/register", "/me"):
+    if request.headers.get("authorization") or request.url.path.startswith("/demo/") or request.url.path in ("/edition", "/login", "/register", "/me"):
         response.headers["Cache-Control"] = "no-store"
         response.headers["Vary"] = ", ".join(filter(None, [response.headers.get("Vary"), "Authorization"]))
     return response

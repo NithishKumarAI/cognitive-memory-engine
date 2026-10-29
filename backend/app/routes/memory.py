@@ -1,6 +1,7 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+from app.core import config
 from sqlalchemy.orm import Session
 
 from app.db.dependencies import get_db
@@ -36,7 +37,13 @@ from app.crud.retrieval import (
     search_memories_by_embedding
 )
 
+def demo_model_guard(request: Request):
+    if config.APP_EDITION == "demo" and request.method in ("POST", "PUT", "PATCH"):
+        raise HTTPException(403, "Memory indexing and semantic model search are disabled in the demo. Use workspace keyword search.")
+
+
 router = APIRouter(
+    dependencies=[Depends(demo_model_guard)],
     prefix="/memories",
     tags=["Memories"]
 )

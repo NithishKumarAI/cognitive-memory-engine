@@ -8,6 +8,7 @@
     "start": "node scripts/start.mjs",
     "lint": "eslint",
     "test:e2e": "playwright test",
+    "test:demo": "playwright test --config playwright.demo.config.ts",
     "test:release": "node --test scripts/release.test.mjs"
   },
   "dependencies": {

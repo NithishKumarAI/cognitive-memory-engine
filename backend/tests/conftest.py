@@ -5,6 +5,10 @@ from unittest.mock import Mock
 
 # Set before any app imports; never read a developer database or secrets.
 os.environ["DATABASE_URL"] = "sqlite://"
+os.environ["APP_EDITION"] = "product"
+os.environ["DEMO_STORAGE_ENABLED"] = "false"
+os.environ["DEMO_SECRET_KEY"] = "synthetic-unused-demo-test-signing-key"
+os.environ["AI_KEY_ENCRYPTION_KEYS"] = ""
 os.environ["SECRET_KEY"] = "phase1-test-signing-key-only-at-least-32-bytes"
 os.environ["GEMINI_API_KEY"] = "test-only"
 os.environ["GOOGLE_API_KEY"] = "test-only"

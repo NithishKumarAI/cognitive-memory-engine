@@ -20,7 +20,7 @@ admin = create_engine(url)
 with admin.begin() as connection:
     connection.execute(text(f'CREATE SCHEMA "{schema}"'))
 test_url = url.update_query_dict({"options": f"-csearch_path={schema},public"})
-os.environ.update(DATABASE_URL=test_url.render_as_string(hide_password=False), PYTHON_DOTENV_DISABLED="1",
+os.environ.update(DATABASE_URL=test_url.render_as_string(hide_password=False), PYTHON_DOTENV_DISABLED="1", APP_EDITION="product", DEMO_STORAGE_ENABLED="false", AI_KEY_ENCRYPTION_KEYS="",
     SECRET_KEY="synthetic-e2e-signing-key-only-at-least-32-bytes", AI_ENABLED="true", REGISTRATION_ENABLED="true", GEMINI_API_KEY="synthetic-only", GOOGLE_GENAI_USE_VERTEXAI="false",
     GEMINI_MODEL="gemini-2.5-flash", GEMINI_TIMEOUT_MS="30000", FRONTEND_ORIGINS="http://127.0.0.1:3100")
 from alembic import command

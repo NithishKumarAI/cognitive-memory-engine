@@ -17,3 +17,5 @@ export async function transcribeRecording(audio: Blob, consent: boolean) {
     headers: { "Content-Type": audio.type, "X-Audio-Consent": "true" },
   })).data.transcript;
 }
+
+export async function guidedExample() { return (await api.post<Capture>("/demo/example")).data; }

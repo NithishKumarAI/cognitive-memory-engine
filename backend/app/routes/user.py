@@ -21,6 +21,7 @@ from app.crud.user import authenticate_user
 from app.schemas.user import Token
 from app.core.auth import create_access_token
 from app.core.config import REGISTRATION_ENABLED
+from app.core import config
 
 from app.core.auth import get_current_user
 from app.models.user import User
@@ -64,7 +65,7 @@ def register_user(
     user: UserCreate,
     db: Session = Depends(get_db)
 ):
-    if not REGISTRATION_ENABLED:
+    if config.APP_EDITION == "demo" or not REGISTRATION_ENABLED:
         raise HTTPException(403, "Registration is currently closed")
 
     try:
@@ -97,6 +98,8 @@ def login(
     credentials: UserLogin,
     db: Session = Depends(get_db)
 ):
+    if config.APP_EDITION == "demo":
+        raise HTTPException(403, "Use a temporary demo session")
     try:
         user = authenticate_user(db, credentials.email, credentials.password)
     except SQLAlchemyError:

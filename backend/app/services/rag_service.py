@@ -11,6 +11,7 @@ from app.models.memory import Memory
 from app.models.memory_embedding import MemoryEmbedding
 from app.services.observation_retrieval import search_confirmed_observations, recall_terms, literal_word_pattern
 from app.services.llm_service import llm_service
+from app.core import config
 from app.crud.conversation import create_conversation
 from app.models.learning_capture import LearningCapture, LearningObservation
 from app.services.continuity_service import (
@@ -281,6 +282,17 @@ class RAGService:
                 response=deterministic["answer"]
             )
             return deterministic
+
+        if config.APP_EDITION == "demo":
+            observations = search_confirmed_observations(db, user_id, question)
+            sources = [{"source_type": "observation", "observation_id": row.id,
+                "capture_id": row.capture_id, "memory_id": None, "title": row.topic,
+                "category": row.observation_type, "distance": 0.0, "evidence": row.content}
+                for row in observations[:5]]
+            answer = "Saved learning evidence (live AI is disabled):\n" + "\n".join(
+                f"{excerpt(row.content, 500)} [Observation {row.id}]" for row in observations[:5]) if observations else "Live AI is disabled. No saved evidence matches this question. Try asking where you stopped or what you planned next."
+            create_conversation(db=db, user_id=user_id, message=question, response=answer)
+            return {"answer": answer, "sources": sources}
 
         # Embeddings stay optional: no model initialization when the owner has no indexed memories.
         retrieval_results = []

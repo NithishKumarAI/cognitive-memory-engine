@@ -13,13 +13,13 @@ type AuthGuardProps = {
 export function AuthGuard({ children }: AuthGuardProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { isAuthenticated, isLoading, status, refreshUser } = useAuth();
+  const { isAuthenticated, isLoading, status, refreshUser, edition } = useAuth();
 
   useEffect(() => {
-    if (status === "unauthenticated") {
+    if (status === "unauthenticated" && edition === "product") {
       router.replace(`/login?next=${encodeURIComponent(pathname)}`);
     }
-  }, [pathname, router, status]);
+  }, [pathname, router, status, edition]);
 
   if (status === "error") return <div role="alert" className="p-8 text-center"><p>We could not verify your session. Your sign-in has been kept.</p><button className="mt-4 rounded-xl bg-primary px-5 py-3 text-primary-foreground" onClick={() => void refreshUser()}>Retry connection</button></div>;
 

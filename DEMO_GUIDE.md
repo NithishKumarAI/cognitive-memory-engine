@@ -1,3 +1,101 @@
+# LearnTrack public interactive demo — V2
+
+The `demo` branch provides temporary anonymous workspaces. The product branch
+`codex/learntrack-product-v2` requires registration. Both use the same learning
+engine. Remote main is updated only after review and owner approval.
+
+## Start the demo locally on Windows
+
+Use Python 3.12, Node 24 and a **new separate PostgreSQL/pgvector database** named
+`learntrack_demo`, with its own database role. Never use product credentials.
+From the repository root on the demo branch:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r backend/requirements-test.txt
+if (-not (Test-Path backend/.env.demo.local)) {
+  Copy-Item backend/.env.demo.example backend/.env.demo.local
+}
+```
+
+Edit the ignored `backend/.env.demo.local`. Set matching explicit database and
+migration URLs, a separate 32+ character `DEMO_SECRET_KEY`, and a different
+`SECRET_KEY`. Keep `APP_EDITION=demo`, `DEMO_STORAGE_ENABLED=true`,
+`REGISTRATION_ENABLED=false` and `AI_ENABLED=false`. The local helper reads only
+this file, so your product `.env` stays untouched. No Gemini key is needed.
+
+```powershell
+.\.venv\Scripts\python.exe backend/scripts/demo_local.py migrate
+.\.venv\Scripts\python.exe backend/scripts/demo_local.py check
+.\.venv\Scripts\python.exe backend/scripts/demo_local.py serve --port 8001
+```
+
+In another PowerShell terminal:
+
+```powershell
+Set-Location frontend
+npm ci
+$env:APP_EDITION='demo'
+$env:NEXT_PUBLIC_API_URL='http://127.0.0.1:8001'
+$env:ALLOW_LOCAL_API_ORIGIN='1'
+$env:NEXT_TELEMETRY_DISABLED='1'
+npm run build
+$env:PORT='3001'
+npm start
+```
+
+Open `http://localhost:3001`. Add that exact origin to the demo backend's
+`FRONTEND_ORIGINS` (for example `http://localhost:3001,http://127.0.0.1:3001`) before
+starting it. Root, login and registration pages redirect to the demo workspace
+when the frontend is built with `APP_EDITION=demo`. Backend authorization always
+uses its own trusted edition setting.
+
+## Explore the workflow
+
+1. Home already contains 15 synthetic learning updates across three paths.
+2. Follow a checkpoint or recommendation to its actual supporting record.
+3. Search for closures or SQL. Ask the Assistant “Where did I stop?” or
+   “What should I practice next?” for evidence-based recall.
+4. Choose **Try guided example** to review a clearly labeled scripted SQL draft.
+   Correct it and confirm; your Home counts update immediately.
+5. Write your own synthetic note and choose **Review manually** for the normal
+   non-AI workflow. Avoid personal information in a disposable demonstration.
+6. Open another private browser context to see a different isolated visitor.
+7. Choose **Reset Demo** to replace only your current visitor workspace.
+
+Guest access expires after two hours. A new guest session gets fresh seed data.
+Run the explicit maintenance command regularly in a deployed demo:
+
+```powershell
+.\.venv\Scripts\python.exe backend/scripts/demo_local.py cleanup
+```
+
+Each batch selects at most 100 expired issued guest owners. It does not select
+active guests or unrelated accounts. Provision and monitor maintenance in your
+hosting environment; the app does not create a scheduled job automatically.
+
+## Boundaries and live AI
+
+Live Gemini, voice transcription, model indexing and semantic model search are
+server-blocked in this edition. There is no owner-key configuration to expose.
+Keyword search, manual capture and evidence-based recall remain usable.
+The demo enforces 64 KiB upload bodies, 100 mutations per guest, 500 new sessions
+per UTC day and ten new sessions per socket peer per hour. These durable limits
+do not implement paid-provider quotas. Live AI stays disabled until distributed
+cost controls and operational abuse defenses are independently verified.
+
+Use separate databases, roles and secrets for product and demo. Add HTTPS,
+trusted-proxy rules, edge rate limits, monitoring and verified backups before
+public hosting. See [the demo report](LEARNTRACK_DEMO_REPORT.md) and
+[final acceptance](LEARNTRACK_FINAL_ACCEPTANCE.md) for unresolved release gates.
+No cloud deployment has been performed.
+
+---
+
+## Historical authenticated walkthrough
+
+The following older walkthrough is retained for the authenticated product. It
+is not the public guest demo described above.
+
 # LearnTrack walkthrough
 
 Your AI learning continuity companion. Remember what you learn. Pick up where you left off.

@@ -28,7 +28,7 @@ export function getToken() {
     return null;
   }
 
-  return window.localStorage.getItem(TOKEN_STORAGE_KEY);
+  return window.sessionStorage.getItem("learntrack_demo_token") ?? window.localStorage.getItem(TOKEN_STORAGE_KEY);
 }
 
 export function clearToken() {

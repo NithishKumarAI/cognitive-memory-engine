@@ -20,7 +20,7 @@ export default function SettingsPage() {
     catch { setKey(""); setError("Unable to update your key. Check the connection and whether secure storage is configured."); }
     finally { setBusy(false); }
   }
-  return <div className="mx-auto max-w-2xl space-y-6"><header><h1 className="text-3xl font-semibold">AI Configuration</h1><p className="mt-3 text-muted-foreground">Use your own Gemini key for learning analysis, assistant answers and consented voice transcription. Google Gemini may charge for usage. Manual learning capture works without a key.</p></header>
+  return <div className="mx-auto max-w-2xl space-y-6"><header><h1 className="text-3xl font-semibold">AI Configuration</h1><p className="mt-3 text-muted-foreground">{configuration?.edition === "demo" ? "This demonstration supports manual capture and saved learning evidence. Live AI, voice transcription and personal keys are unavailable." : "Use your own Gemini key for learning analysis, assistant answers and consented voice transcription. Google Gemini may charge for usage. Manual learning capture works without a key."}</p></header>
     {error ? <div role="alert"><p>{error}</p><Button variant="outline" onClick={() => setRefresh(value => value + 1)}>Retry configuration</Button></div> : null}
     {notice ? <p role="status">{notice}</p> : null}
     <Card className="space-y-4 p-6"><p role="status">{configuration ? configuration.edition === "demo" ? "Live AI and personal keys are disabled in this demo." : configuration.configured ? "A personal key is saved." : "No personal key is saved." : "Checking configuration…"}</p>

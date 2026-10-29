@@ -1,3 +1,6 @@
 # Screenshot provenance
 
-Unmodified copies of `test-artifacts/final-acceptance/screenshots/{home,recommendations,analytics}-light-1440.png` from the existing synthetic Playwright journey. Inspected before reuse: only synthetic Avery/Python learning records, no tokens or real account data. The earlier project name remains visible intentionally; captions disclose the rename. Original evidence is retained.
+Unmodified copies of `test-artifacts/product-v2/screenshots/{home,recommendations,analytics}-light-1440.png`
+from the verified product V2 browser suite. Only synthetic Avery/Python records
+are shown; no keys, tokens or real account data. The prior screenshots remain
+preserved under `test-artifacts/final-acceptance/screenshots`.

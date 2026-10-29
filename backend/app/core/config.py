@@ -36,3 +36,5 @@ APP_EDITION = os.getenv("APP_EDITION", "product")
 if APP_EDITION not in ("product", "demo"):
     raise RuntimeError("APP_EDITION must be product or demo")
 AI_KEY_ENCRYPTION_KEYS = os.getenv("AI_KEY_ENCRYPTION_KEYS", "")
+DEMO_STORAGE_ENABLED = os.getenv("DEMO_STORAGE_ENABLED", "false").lower() == "true"
+DEMO_SECRET_KEY = os.getenv("DEMO_SECRET_KEY", "")
