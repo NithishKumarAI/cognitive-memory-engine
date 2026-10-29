@@ -7,3 +7,4 @@ from app.models.memory_embedding import MemoryEmbedding
 from app.models.learning_track import LearningTrack
 from app.models.learning_capture import LearningCapture, LearningObservation
 from app.models.learning_action import LearningAction
+from app.models.ai_credential import AICredential

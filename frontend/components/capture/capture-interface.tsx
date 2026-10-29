@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { captureHref } from "@/lib/routes";
 import { VoiceInput } from "@/components/capture/voice-input";
-import { analyzeLearning, getCapture, listCaptures, confirmCapture, retryCapture, discardCapture } from "@/services/capture";
+import { analyzeLearning, manualLearning, getCapture, listCaptures, confirmCapture, retryCapture, discardCapture } from "@/services/capture";
+import { getAIConfiguration } from "@/services/ai-configuration";
 import { listLearningTracks } from "@/services/learningTracks";
 import type { Capture, Interpretation, ObservationType } from "@/types/capture";
 import type { LearningTrack } from "@/types/learningTrack";
@@ -18,7 +19,7 @@ const empty = (): Interpretation => ({ subject: null, topics: [], observations: 
 const kinds: { value: ObservationType; label: string }[] = [{ value: "learned", label: "Learned" }, { value: "understood_self_report", label: "Understanding (self-report)" }, { value: "difficulty", label: "Difficulty" }, { value: "open_question", label: "Open question" }, { value: "intended_next_step", label: "Intended next step" }];
 const selectClass = "w-full rounded-md border border-input bg-background px-3 py-2 text-sm";
 
-export function CaptureInterface() {
+export function CaptureInterface({ inline = false, onConfirmed }: { inline?: boolean; onConfirmed?: () => void }) {
   const voiceSection = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -32,26 +33,35 @@ export function CaptureInterface() {
   const [tracks, setTracks] = useState<LearningTrack[]>([]); const [recent, setRecent] = useState<Capture[]>([]);
   const [track, setTrack] = useState(""); const [memories, setMemories] = useState(false);
   const [operation, setOperation] = useState<"analyze" | "confirm" | null>(null);
+  const [loadErrors, setLoadErrors] = useState<string[]>([]);
+  const [reload, setReload] = useState(0);
+  const [aiAvailable, setAiAvailable] = useState(false);
   const [busy, setBusy] = useState(false); const [error, setError] = useState<string | null>(null);
   const apply = useCallback((result: Capture) => {
     setCapture(result); setText(result.original_text); setSource(result.source_type);
     setTrack(result.learning_track_id === null ? "" : String(result.learning_track_id));
     setProposal(result.confirmed_interpretation ?? result.proposed_interpretation ?? empty());
-    window.history.replaceState(null, "", captureHref(result.id) + window.location.hash);
+    if (!inline) window.history.replaceState(null, "", captureHref(result.id) + window.location.hash);
     setRecent(previous => [result, ...previous.filter(item => item.id !== result.id)].slice(0, 20));
-  }, []);
+  }, [inline]);
   useEffect(() => {
     let active = true;
-    Promise.all([listLearningTracks(), listCaptures()]).then(([loadedTracks, loadedCaptures]) => {
-      if (!active) return; setTracks(loadedTracks); setRecent(loadedCaptures);
-      const id = Number(new URLSearchParams(window.location.search).get("capture"));
-      if (Number.isInteger(id) && id > 0) getCapture(id).then(result => { if (active) apply(result); }).catch(() => { if (active) setError("Unable to open capture."); });
-    }).catch(() => { if (active) setError("Unable to load tracks or recent captures. Reload to retry."); });
+    Promise.allSettled([listLearningTracks(), listCaptures(), getAIConfiguration()]).then(([paths, history, ai]) => {
+      if (!active) return;
+      const failures: string[] = [];
+      if (paths.status === "fulfilled") setTracks(paths.value); else failures.push("Learning paths are unavailable. You can leave this update unassigned.");
+      if (history.status === "fulfilled") setRecent(history.value); else failures.push("Recent captures are unavailable. You can still write a new update.");
+      setAiAvailable(ai.status === "fulfilled" && ai.value.available);
+      if (ai.status === "rejected") failures.push("AI configuration could not be checked. Manual capture remains available.");
+      setLoadErrors(failures);
+    });
+    const id = Number(new URLSearchParams(window.location.search).get("capture"));
+    if (!inline && Number.isInteger(id) && id > 0) getCapture(id).then(result => { if (active) apply(result); }).catch(() => { if (active) setError("Unable to open capture. Retry from recent captures when the service is available."); });
     return () => { active = false; };
-  }, [apply]);
+  }, [apply, inline, reload]);
   async function perform(action: () => Promise<Capture>, stage: "analyze" | "confirm" | null = null) {
     setBusy(true); setOperation(stage); setError(null);
-    try { apply(await action()); }
+    try { const result = await action(); apply(result); if (stage === "confirm" && result.status === "confirmed") onConfirmed?.(); }
     catch (failure) { const detail = failure instanceof AxiosError ? failure.response?.data?.detail : null; setError(typeof detail === "string" ? detail : "Unable to save. Check the fields, reload the capture, and retry. Confirmation retries cannot create duplicates."); }
     finally { setBusy(false); setOperation(null); }
   }
@@ -61,19 +71,20 @@ export function CaptureInterface() {
   }, [capture]);
   const editable = !!capture && (capture.status === "pending" || capture.status === "failed");
   const readOnly = busy || !editable;
-  function reset() { setCapture(null); setText(""); setSource("text"); setProposal(empty()); setTrack(""); setError(null); setMemories(false); window.history.replaceState(null, "", "/dashboard/capture"); }
-  return <div className="mx-auto max-w-4xl space-y-5">
-    <div className="flex flex-wrap items-center justify-between gap-3"><div><h1 className="text-2xl font-semibold">Capture Learning</h1><p className="mt-1 text-sm text-muted-foreground">Describe your learning, review the interpretation, then confirm what to save.</p></div><Button variant="outline" disabled={busy} onClick={reset}>New capture</Button></div>
-    <ol aria-label="Capture progress" className="grid grid-cols-3 gap-2 rounded-2xl border border-border bg-card p-3 text-sm sm:grid-cols-5">{["Compose", "Analyze", "Review", "Confirm", "Saved"].map((step, index) => { const current = capture?.status === "confirmed" ? 4 : operation === "confirm" ? 3 : operation === "analyze" ? 1 : capture ? 2 : 0; return <li key={step} aria-current={index === current ? "step" : undefined} className={`rounded-xl px-3 py-2 ${index === current ? "bg-sidebar-accent font-semibold text-primary" : "text-muted-foreground"}`}><span className="mr-2 text-xs">{index + 1}.</span>{step}</li>; })}</ol>
+  function reset() { setCapture(null); setText(""); setSource("text"); setProposal(empty()); setTrack(""); setError(null); setMemories(false); if (!inline) window.history.replaceState(null, "", "/dashboard/capture"); }
+  return <div id={inline ? "learning-input" : undefined} className="mx-auto max-w-4xl space-y-5">
+    <div className="flex flex-wrap items-center justify-between gap-3"><div>{inline ? <h2 className="text-2xl font-semibold">What did you learn today?</h2> : <h1 className="text-2xl font-semibold">Capture Learning</h1>}<p className="mt-1 text-sm text-muted-foreground">Describe your learning, review the interpretation, then confirm what to save.</p></div>{!inline || capture ? <Button variant="outline" disabled={busy} onClick={reset}>New capture</Button> : null}</div>
+    {!inline || capture || busy ? <ol aria-label="Capture progress" className="grid grid-cols-3 gap-2 rounded-2xl border border-border bg-card p-3 text-sm sm:grid-cols-5">{["Compose", "Analyze", "Review", "Confirm", "Saved"].map((step, index) => { const current = capture?.status === "confirmed" ? 4 : operation === "confirm" ? 3 : operation === "analyze" ? 1 : capture ? 2 : 0; return <li key={step} aria-current={index === current ? "step" : undefined} className={`rounded-xl px-3 py-2 ${index === current ? "bg-sidebar-accent font-semibold text-primary" : "text-muted-foreground"}`}><span className="mr-2 text-xs">{index + 1}.</span>{step}</li>; })}</ol> : null}
+    {loadErrors.length ? <div role="alert" className="rounded-xl border border-border p-4 text-sm">{loadErrors.map(message => <p key={message}>{message}</p>)}<Button variant="outline" onClick={() => setReload(value => value + 1)}>Retry optional data</Button></div> : null}
     {error ? <p role="alert" className="text-sm text-destructive">{error}</p> : null}
     <Card className="space-y-4 p-4 sm:p-6">
-      <Label htmlFor="recent-capture">Recent captures</Label><select id="recent-capture" className={selectClass} value={capture?.id ?? ""} disabled={busy} onChange={event => { if (event.target.value) void perform(() => getCapture(Number(event.target.value))); }}><option value="">Select a saved capture</option>{recent.map(item => <option key={item.id} value={item.id}>Capture #{item.id} · {item.status}</option>)}</select>
-      {!recent.length ? <p className="text-sm text-muted-foreground">No captures yet. Start with a learning update below.</p> : null}
-      {!capture ? <div ref={voiceSection} tabIndex={-1} role="region" aria-label="Voice capture" className="rounded-xl focus:ring-2 focus:ring-primary focus:ring-offset-4 focus:ring-offset-card"><VoiceInput disabled={busy} onTranscript={transcript => { setText(transcript); setSource("voice"); }} /></div> : null}
+      {!inline ? <><Label htmlFor="recent-capture">Recent captures</Label><select id="recent-capture" className={selectClass} value={capture?.id ?? ""} disabled={busy} onChange={event => { if (event.target.value) void perform(() => getCapture(Number(event.target.value))); }}><option value="">Select a saved capture</option>{recent.map(item => <option key={item.id} value={item.id}>Capture #{item.id} · {item.status}</option>)}</select>
+      {!recent.length ? <p className="text-sm text-muted-foreground">No captures yet. Start with a learning update below.</p> : null}</> : null}
       <Label htmlFor="learning-text">{capture ? "Original input (preserved)" : "Learning update / editable transcription"}</Label>
       <Textarea id="learning-text" rows={8} maxLength={20000} value={text} readOnly={!!capture} disabled={busy} onChange={event => setText(event.target.value)} placeholder="What did you study? What was confusing? What would you like to try next?" />
+      {!capture ? <details open={!inline}><summary className="min-h-11 cursor-pointer text-sm font-medium">Speak a learning update (optional)</summary><div ref={voiceSection} tabIndex={-1} role="region" aria-label="Voice capture" className="rounded-xl focus:ring-2 focus:ring-primary focus:ring-offset-4 focus:ring-offset-card"><VoiceInput disabled={busy} onTranscript={transcript => { setText(transcript); setSource("voice"); }} /></div></details> : null}
       {!capture ? <p className="text-right text-xs text-muted-foreground">{text.length.toLocaleString()} / 20,000 characters</p> : null}
-      {!capture ? <><p className="text-xs text-muted-foreground">Analyze Learning sends this text to Google Gemini. The proposal is a draft; no learning facts are confirmed until you approve them.</p><Button disabled={busy || !text.trim()} onClick={() => perform(() => analyzeLearning(text, source, track ? Number(track) : null), "analyze")}>{busy ? "Analyzing…" : "Analyze Learning"}</Button></> : null}
+      {!capture ? <><p className="text-xs text-muted-foreground">Analyze Learning sends this text to Google Gemini. The proposal is a draft; no learning facts are confirmed until you approve them.</p><Button disabled={busy || !text.trim() || !aiAvailable} onClick={() => perform(() => analyzeLearning(text, source, track ? Number(track) : null), "analyze")}>{busy ? "Analyzing…" : "Analyze Learning"}</Button><Button variant="outline" disabled={busy || !text.trim()} onClick={() => perform(() => manualLearning(text, source, track ? Number(track) : null))}>Review manually</Button>{!aiAvailable ? <p className="text-sm text-muted-foreground">AI is unavailable. Review and save manually, or <Link className="underline" href="/dashboard/settings">configure your Gemini key</Link>.</p> : null}</> : null}
       {capture ? <p role="status" className="text-sm" aria-live="polite">Capture #{capture.id} · {capture.status}. {capture.message}</p> : null}
       {capture?.status === "failed" ? <p className="text-sm">This capture has not been understood by AI. Retry analysis or enter your own interpretation below.</p> : null}
       {editable && capture ? <div className="flex flex-wrap gap-2"><Button variant="outline" disabled={busy} onClick={() => perform(() => retryCapture(capture.id, capture.version), "analyze")}>Retry analysis (replaces draft edits)</Button><Button variant="outline" disabled={busy} onClick={() => perform(() => discardCapture(capture.id, capture.version))}>Discard draft</Button><Button variant="outline" disabled={busy} onClick={() => perform(() => getCapture(capture.id))}>Reload saved capture</Button></div> : null}
@@ -81,7 +92,7 @@ export function CaptureInterface() {
     <Card className="space-y-4 p-4 sm:p-6">
       <Label htmlFor="capture-track">Existing learning track (optional)</Label>
       <select id="capture-track" className={selectClass} value={track} disabled={busy || !!capture && !editable} onChange={event => setTrack(event.target.value)}><option value="">Leave unassigned</option>{tracks.map(item => <option key={item.id} value={item.id}>{item.name}{capture?.matching_track_ids.includes(item.id) ? " (possible match)" : ""}</option>)}</select>
-      <p className="text-xs text-muted-foreground">Choose the track yourself. Ambiguous matches stay unassigned; no tracks are created automatically.</p>
+      <p className="text-xs text-muted-foreground">A learning path organizes related topics, such as Python or SQL. It is optional; you can save your first update without one.</p>
     </Card>
     {capture ? <Card className="space-y-5 p-4 sm:p-6">
       <div><p className="text-xs font-semibold uppercase tracking-widest text-primary">{capture.status === "confirmed" ? "Confirmed by you" : "AI proposal · your review matters"}</p><h2 className="mt-2 text-xl font-semibold">{capture.status === "confirmed" ? "Saved interpretation" : "Make this reflection your own"}</h2><p className="mt-2 text-sm text-muted-foreground">Correct the subject, select an observation type and keep only what reflects your experience.</p></div>

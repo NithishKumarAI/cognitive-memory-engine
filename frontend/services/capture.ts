@@ -1,5 +1,8 @@
 import api from "@/services/api";
 import type { Capture, Confirmation } from "@/types/capture";
+export async function manualLearning(text: string, source_type: "text" | "voice", learning_track_id: number | null) {
+  return (await api.post<Capture>("/capture/manual", { text, source_type, learning_track_id })).data;
+}
 export async function analyzeLearning(text: string, source_type: "text" | "voice", learning_track_id: number | null) {
   return (await api.post<Capture>("/capture/analyze", { text, source_type, learning_track_id })).data;
 }

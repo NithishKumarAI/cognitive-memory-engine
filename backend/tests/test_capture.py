@@ -193,6 +193,7 @@ def test_unsupported_extraction_rejected(ai, change):
 
 def test_supported_sdk_boundary(monkeypatch):
     import app.services.llm_service as module
+    monkeypatch.setattr(module, "personal_key", lambda: "synthetic-personal-test-key")
     client = Mock(); client.__enter__ = Mock(return_value=client); client.__exit__ = Mock(return_value=False)
     client.models.generate_content.return_value = SimpleNamespace(text=" Answer ")
     factory = Mock(return_value=client)
@@ -244,6 +245,7 @@ def test_transcription_failure(client, headers, ai, output, status):
 def test_real_sdk_structured_serialization_without_network(monkeypatch, mode):
     import httpx
     import app.services.llm_service as module
+    monkeypatch.setattr(module, "personal_key", lambda: "synthetic-personal-test-key")
     from google.genai import types
     original_client = module.genai.Client
     requests = []

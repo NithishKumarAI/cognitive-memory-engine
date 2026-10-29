@@ -26,6 +26,18 @@ def safe_write(db):
         raise HTTPException(503, "Unable to save capture; reload and retry") from None
 
 
+@router.post("/manual", response_model=CaptureResponse)
+def manual_new(payload: AnalyzeInput, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    with safe_write(db):
+        service.check_track(db, payload.learning_track_id, user.id)
+        capture = LearningCapture(user_id=user.id, original_text=payload.text,
+            source_type=payload.source_type, learning_track_id=payload.learning_track_id,
+            status="pending", version=1, processing_model=None, extraction_version="manual")
+        db.add(capture)
+        db.commit()
+        return service.response(db, capture, "Manual draft saved. Add your observations, then confirm and save.")
+
+
 @router.post("/analyze", response_model=CaptureResponse)
 def analyze_new(payload: AnalyzeInput, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     user_id = user.id

@@ -1,3 +1,28 @@
+# V2 deployment gates (29 October 2026)
+
+Do not deploy automatically. No cloud deployment has been performed by this work.
+Product and demo require separate PostgreSQL databases, database roles, secrets,
+origins and signing keys. Apply reviewed forward migrations after taking a
+recoverable backup; never reset an existing database.
+
+Product V2 requires backend `AI_KEY_ENCRYPTION_KEYS` for personal-key persistence.
+Protect it in a secret manager, restrict database access, and test backup/restore
+with the corresponding encryption-key versions. There is no owner-key fallback.
+Terminate HTTPS at a trusted proxy; restrict CORS to the exact frontend origin.
+JWT storage remains compatible with existing clients; browser localStorage still
+requires careful XSS prevention. This work does not replace the auth system.
+
+The public demo must keep live AI disabled until distributed quota reservations,
+concurrency limits, provider timeouts, failure backoff, abuse controls and a kill
+switch are independently verified. Provider-project quotas and infrastructure
+rate limits are additional controls. Billing alerts do not stop spending.
+
+Current dependency audit results and remaining release blockers are recorded in
+the V2 acceptance document. Passing local tests does not establish public release
+readiness. Remote `main` promotion requires the owner's approval.
+
+---
+
 # Production deployment plan — review only, not executed
 
 Current recommendation: **NO-GO until all gates in `V1_RELEASE_HARDENING_REPORT.md` and `RELEASE_CHECKLIST.md` are closed with evidence.** Do not run production commands from this document without explicit owner approval of the named project, database, image digests, migration job and rollback. This pass did not inspect or change any Cloud Run/Neon account. Historical GitHub release `v1.0.0` from June 2026 does not contain or verify this local hardening work.

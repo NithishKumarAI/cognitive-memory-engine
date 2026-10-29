@@ -228,7 +228,10 @@ def test_explicit_migration_environment_url(postgres_engine, monkeypatch):
     config.set_main_option("sqlalchemy.url", "")
     command.upgrade(config, "head")
     with postgres_engine.connect() as connection:
-        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "f40100000001"
+        from alembic.script import ScriptDirectory
+        from alembic.config import Config
+        config = Config(str(Path(__file__).resolve().parents[1] / "alembic.ini"))
+        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == ScriptDirectory.from_config(config).get_current_head()
 
 
 def test_migration_needs_no_application_database_setting(postgres_engine):
@@ -242,7 +245,10 @@ def test_migration_needs_no_application_database_setting(postgres_engine):
     result = subprocess.run([sys.executable, "-m", "alembic", "upgrade", "head"], cwd=str(backend_dir), env=env, capture_output=True, timeout=30)
     assert result.returncode == 0, "Isolated Alembic bootstrap failed without app settings"
     with postgres_engine.connect() as connection:
-        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "f40100000001"
+        from alembic.script import ScriptDirectory
+        from alembic.config import Config
+        config = Config(str(Path(__file__).resolve().parents[1] / "alembic.ini"))
+        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == ScriptDirectory.from_config(config).get_current_head()
 
 
 def test_phase3_head_action_rows_survive_forward_digest_migration(postgres_engine):

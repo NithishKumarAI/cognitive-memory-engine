@@ -14,6 +14,7 @@ const items = [
   { href: "/dashboard/history", label: "Learning History", icon: History },
   { href: "/dashboard/memories", label: "Memory", icon: Brain },
   { href: "/dashboard/study-logs", label: "Study Logs", icon: BookOpenCheck },
+  { href: "/dashboard/settings", label: "Settings", icon: Compass },
 ];
 export function WorkspaceNavigation({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();

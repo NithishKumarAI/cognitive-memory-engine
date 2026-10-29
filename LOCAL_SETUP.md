@@ -1,3 +1,42 @@
+# Product V2 additions
+
+If Home/Capture shows a generic load error while local health is healthy, check
+`frontend/.env.local` first: this checkout previously pointed at a legacy Cloud
+Run backend with missing capture/continuity routes. For local development use
+`NEXT_PUBLIC_API_URL=http://127.0.0.1:8000`, then restart the frontend (or rebuild a
+production frontend). The previous file is retained locally as the ignored
+`.env.local.before-learntrack-v2`. Register separately in the local database if
+your earlier registration reached that remote API.
+
+The product name is **LearnTrack**. Repository paths and existing database/session
+identifiers retain their original spelling for compatibility.
+
+Use a separate local development database. Set both `DATABASE_URL` and
+`ALEMBIC_DATABASE_URL` to that exact database; neither helper guesses a migration
+target. Back up an existing database before applying forward migrations.
+
+1. Install `backend/requirements-test.txt` for the small test/API runtime, or
+   `backend/requirements.txt` when local embedding features are needed. Both
+   include Windows timezone data.
+2. Keep `APP_EDITION=product`. Start with `AI_ENABLED=false`; Home capture works
+   through **Review manually → Add observation → Confirm and save**.
+3. Run the migration and readiness commands below, then start backend and frontend.
+4. For personal Gemini keys, configure `AI_KEY_ENCRYPTION_KEYS` through your
+   server's secret manager using a valid Fernet encryption key. Do not paste that
+   operator key into the browser or commit it. Restart the backend after changing
+   server configuration, set `AI_ENABLED=true`, and add a personal Gemini key at
+   **Settings → AI Configuration**. Saving a key makes no paid validation call.
+5. For encryption-key rotation, put the new key first in the comma-separated
+   list, retain old keys until users replace/re-save their credentials, then
+   retire old keys only after backup and migration review. Removing the only
+   decrypting key makes existing credentials unusable. Backups need protected
+   access to both encrypted records and their corresponding encryption keys.
+
+No global Gemini key is used in product V2. Existing saved learning survives the
+forward migration. Already running provider calls may finish after key removal.
+
+---
+
 # Run LearnTrack locally
 
 The public homepage works with only the frontend. Creating an account needs **the backend and PostgreSQL too**. No Python source changes are required. Configure only `backend/.env` and `frontend/.env.local`; never commit either file.

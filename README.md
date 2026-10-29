@@ -2,6 +2,29 @@
 
 **Your AI learning continuity companion.** Remember what you learn. Pick up where you left off.
 
+## Product V2
+
+Home is the primary learning workspace: write or speak an update, review it and
+confirm what to save. **Review manually** works without Gemini and never makes a
+provider call. Learning paths are optional. A failed overview, path listing or
+history request no longer prevents unrelated sections or the input from loading.
+
+Use **Settings → AI Configuration** to add, replace or remove your personal Gemini
+key. Keys are encrypted on the backend and never returned to the browser. The
+operator must configure `AI_KEY_ENCRYPTION_KEYS` before enabling key storage.
+Product requests never fall back to a global `GEMINI_API_KEY`. Apply the new
+forward migration to a deliberately selected database before starting V2.
+
+The `demo` branch adds isolated anonymous workspaces with realistic seed records,
+manual capture, guided review examples and evidence-based recall. Demo live AI
+is deliberately server-blocked. Use [DEMO_GUIDE.md](DEMO_GUIDE.md) to start it with
+separate database credentials and signing keys. Product and demo are not deployed
+by this work; see [final acceptance](LEARNTRACK_FINAL_ACCEPTANCE.md) for remaining
+release gates.
+
+The implementation branch is `codex/learntrack-product-v2`; remote `main` is not
+updated without approval. See [the V2 record](LEARNTRACK_PRODUCT_V2_REPORT.md).
+
 [![Product verification](https://github.com/NithishKumarAI/cognitive-memory-engine/actions/workflows/phase1-ci.yml/badge.svg?branch=main)](https://github.com/NithishKumarAI/cognitive-memory-engine/actions/workflows/phase1-ci.yml)
 
 [Source](https://github.com/NithishKumarAI/cognitive-memory-engine) · [Walkthrough](DEMO_GUIDE.md) · [Screenshots](frontend/public/showcase) · **Live application: Current V1 deployment pending verification.**
@@ -14,7 +37,7 @@ The core differentiator is evidence-based learning continuity: checkpoints and r
 
 ## A look inside
 
-Actual screenshots from existing browser tests, using synthetic Avery/Python learning records. They predate the LearnTrack rename and display the earlier name. Original [test evidence](test-artifacts/final-acceptance/screenshots) is preserved.
+Current product V2 screenshots from production-browser tests, using synthetic Avery/Python learning records. [V2 evidence](test-artifacts/product-v2/screenshots) and the [historical evidence](test-artifacts/final-acceptance/screenshots) are preserved.
 
 **Resume from a checkpoint**
 
@@ -74,7 +97,7 @@ Set-Location backend
 ..\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Stop if any readiness/migration command fails. In another terminal, run `npm ci` and `npm run dev` from `frontend`. Open `http://localhost:3000`; check backend `http://127.0.0.1:8000/health`. The public homepage works without the API, but signup and the workspace require a running API and initialized database. `AI_ENABLED=false` permits initial signup/login checks without Gemini; real capture/assistant operations need deliberate provider configuration.
+Stop if any readiness/migration command fails. In another terminal, run `npm ci` and `npm run dev` from `frontend`. Open `http://localhost:3000`; check backend `http://127.0.0.1:8000/health`. The public homepage works without the API, but signup and the workspace require a running API and initialized database. `AI_ENABLED=false` supports signup/login and manual capture. Settings → AI Configuration is required for personal-key AI operations; grounded continuity queries also work without Gemini.
 
 ## Manual testing
 
@@ -126,6 +149,6 @@ Dependency advisories, Docker/image verification, live Gemini, microphone/HTTPS 
 
 ## Project history
 
-**Previously developed as Cognitive Memory Engine.** Four development phases, V1 hardening and historical-recall acceptance are documented in the preserved [Phase 4 report](PHASE4_FINAL_PRODUCT_REPORT.md), [hardening report](V1_RELEASE_HARDENING_REPORT.md) and [final acceptance report](V1_FINAL_ACCEPTANCE_REPORT.md). This polish pass changes presentation, not authentication, AI algorithms or the database schema.
+Four development phases, V1 hardening and historical-recall acceptance are documented in the preserved [Phase 4 report](PHASE4_FINAL_PRODUCT_REPORT.md), [hardening report](V1_RELEASE_HARDENING_REPORT.md) and [final acceptance report](V1_FINAL_ACCEPTANCE_REPORT.md). This polish pass changes presentation, not authentication, AI algorithms or the database schema.
 
 LearnTrack name uniqueness has not been confirmed. No trademark or domain ownership is claimed. [Portfolio/resume copy](PORTFOLIO_COPY.md) is available for factual reuse.
